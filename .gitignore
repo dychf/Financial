@@ -1,1 +1,3 @@
 *.pyc
+spider/financial/__pycache__
+spider/financial/core/__pycache__
