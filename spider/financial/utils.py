@@ -33,9 +33,18 @@ def get_db_conn_cur():
     return conn, cur
 
 # 插入/更新数据
-def replace_db(sql: str, params=[]) -> int:
+def replace_db(sql: str, params=[], is_many=False, is_special_sql=False) -> int:
     conn, cur = get_db_conn_cur()
-    result = cur.execute(sql, params)
+    result = 0
+    if is_many:
+        if is_special_sql:
+            for i, args in enumerate(params):
+                count = cur.execute(sql, args)
+                result += count
+        else:
+            result = cur.executemany(sql, params)
+    else:
+        result = cur.execute(sql, params)
     conn.commit()
     return result
 

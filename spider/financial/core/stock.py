@@ -11,10 +11,10 @@ class Stock:
     def __init__(self, code: str, category: None):
         self.code = code
         self.category = category
-        self.__url_gszl = URL_GSZL.format(stock_code=code)
-        self.__url_zcfzb = URL_ZCFZB.format(stock_code=code)
-        self.__url_lrb = URL_LRB.format(stock_code=code)
-        self.__url_xjllb = URL_XJLLB.format(stock_code=code)
+        self.__url_gszl = URL_GSZL.format(stock_code=self.code)
+        self.__url_zcfzb = URL_ZCFZB.format(stock_code=self.code)
+        self.__url_lrb = URL_LRB.format(stock_code=self.code)
+        self.__url_xjllb = URL_XJLLB.format(stock_code=self.code)
         self.encoding = 'GB18030'
         self.__get_data()
 
@@ -36,6 +36,18 @@ class Stock:
         ]
         replace_db(gszl_sql, gszl_sql_params)
 
+        # 插入现金流量表数据
+        xjllb_sql = """
+            INSERT INTO financial(code, year, yyhdxjll, tzhdxjll, czhdxjll)
+            VALUES(%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE code = %s, year = %s, yyhdxjll = %s, tzhdxjll = %s, czhdxjll = %s
+        """
+        xjllb_sql_params = [
+            [self.code, year, self.yyhdxjll[i], self.tzhdxjll[i], self.czhdxjll[i]] * 2
+            for i, year in enumerate(self.years)
+        ]
+        replace_db(xjllb_sql, xjllb_sql_params, is_many=True, is_special_sql=True)
+
     # 市场
     def market(self):
         kv = {'6': '上海', '0': '深圳', '3': '深圳'}
@@ -44,9 +56,9 @@ class Stock:
     # 抓取数据
     def __get_data(self):
         self.__get_data_gszl()
+        self.__get_data_xjllb()
         self.__get_data_zcfzb()
         self.__get_data_lrb()
-        self.__get_data_xjllb()
 
     # 基本信息
     def __get_data_gszl(self):
@@ -84,4 +96,13 @@ class Stock:
 
     # 现金流量表
     def __get_data_xjllb(self):
-        pass
+        df = pd.read_csv(self.__url_xjllb, encoding=self.encoding)
+        self.years = [ymd[:4] for ymd in df.columns.to_list()[1:] if ymd.strip() != '']
+        self.yyhdxjll = []  # CSV_LINE:26  DF_INDEX:24
+        self.tzhdxjll = []  # CSV_LINE:41  DF_INDEX:39
+        self.czhdxjll = []  # CSV_LINE:53  DF_INDEX:51
+        for year in self.years:
+            data = df[f'{year}-12-31']
+            self.yyhdxjll.append(data[24])
+            self.tzhdxjll.append(data[39])
+            self.czhdxjll.append(data[51])
