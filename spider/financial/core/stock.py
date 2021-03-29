@@ -70,7 +70,7 @@ class Stock:
 
         # 资产负债比率（占总资产%）
         # 现金与约当现金、应收账款、存货、流动资产、应付账款、流动负债、长期负债、股东权益
-        # 负债占资产比率
+        # 负债占资产比率、长期资金占不动产/厂房及设备比率
         # 流动比率、速动比率
         zcfzbl_sql = """
             UPDATE financial
@@ -85,6 +85,7 @@ class Stock:
                 gdqy_zzc_bl = %s,
 
                 fz_zzc_bl = %s,
+                cqfz_bdc_bl = %s,
 
                 ldbl = %s,
                 sdbl = %s
@@ -104,6 +105,8 @@ class Stock:
                 self.zcfzb_gdqy[i] / zcfzb_zzc,  # 股东权益
 
                 self.zcfzb_zfz[i] / zcfzb_zzc,  # 负债占资产比率
+                # 长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
+                (self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]),
 
                 self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i],  # 流动比率：流动资产 / 流动负债
                 (self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i],  # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
@@ -182,6 +185,9 @@ class Stock:
         self.zcfzb_ldfz = []  # 流动负债 CSV_LINE:85  DF_INDEX:83
         self.zcfzb_cqfz = []  # 长期负债 CSV_LINE:94  DF_INDEX:92
         self.zcfzb_gdqy = []  # 股东权益 CSV_LINE:108  DF_INDEX:106
+        self.zcfzb_gdzc = []  # 固定资产 CSV_LINE:38  DF_INDEX:36
+        self.zcfzb_zjgc = []  # 在建工程 CSV_LINE:39  DF_INDEX:37
+        self.zcfzb_gcwz = []  # 工程物资 CSV_LINE:40  DF_INDEX:38
         self.zcfzb_zfz = []  # 总负债 CSV_LINE:95  DF_INDEX:93
         self.zcfzb_zzc = []  # 总资产 CSV_LINE:53  DF_INDEX:51
         for year in self.years:
@@ -213,6 +219,12 @@ class Stock:
             self.zcfzb_gdqy.append(float(change_text(data[106], 0)))
             # 总负债
             self.zcfzb_zfz.append(float(change_text(data[93], 0)))
+            # 固定资产
+            self.zcfzb_gdzc.append(float(change_text(data[36], 0)))
+            # 在建工程
+            self.zcfzb_zjgc.append(float(change_text(data[37], 0)))
+            # 工程物资
+            self.zcfzb_gcwz.append(float(change_text(data[38], 0)))
             # 总资产
             self.zcfzb_zzc.append(float(change_text(data[51], 0)))
 
