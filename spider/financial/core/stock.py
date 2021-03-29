@@ -69,13 +69,14 @@ class Stock:
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
 
         # 资产负债比率（占总资产%）
-        # 现金与约当现金、应收账款、存货
+        # 现金与约当现金、应收账款、存货、流动资产
         zcfzbl_sql = """
             UPDATE financial
             SET
                 xjyydxj_zzc_bl = %s,
                 yszk_zzc_bl = %s,
-                ch_zzc_bl = %s
+                ch_zzc_bl = %s,
+                ldzc_zzc_bl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -85,6 +86,7 @@ class Stock:
                 self.zcfzb_xjyydxj[i] / zcfzb_zzc,  # 现金与约当现金
                 self.zcfzb_yszk[i] / zcfzb_zzc,  # 应收账款
                 self.zcfzb_ch[i] / zcfzb_zzc,  # 存货
+                self.zcfzb_ldzc[i] / zcfzb_zzc,  # 流动资产
                 self.code, year
             ]
             zcfzbl_sql_params.append(temp)
@@ -153,6 +155,7 @@ class Stock:
         self.zcfzb_xjyydxj = []  # 现金与约当现金  CSV_LINE:2+3+4+5+6  DF_INDEX:0+1+2+3+4
         self.zcfzb_yszk = []  # 应收账款  CSV_LINE:8  DF_INDEX:6
         self.zcfzb_ch = []  # 存货 CSV_LINE:21  DF_INDEX:19
+        self.zcfzb_ldzc = []  # 流动资产 CSV_LINE:26  DF_INDEX:24
         self.zcfzb_zzc = []  # 总资产  CSV_LINE:53  DF_INDEX:51
         for year in self.years:
             data = df[f'{year}-12-31']
@@ -169,6 +172,8 @@ class Stock:
             self.zcfzb_yszk.append(float(change_text(data[6], 0)))
             # 存货
             self.zcfzb_ch.append(float(change_text(data[19], 0)))
+            # 流动资产
+            self.zcfzb_ldzc.append(float(change_text(data[24], 0)))
             # 总资产
             self.zcfzb_zzc.append(float(change_text(data[51], 0)))
 
