@@ -61,7 +61,7 @@ class Stock:
             temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_cqcxr[i]]
             if year in self.years:
                 index = self.years.index(year)
-                fhl = self.fhpx_px[i] * self.zcfzb_zgb[index] / 10 / self.lrb_jlr[index]
+                fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[index] / 10 / self.lrb_jlr[index] * 100, 2)
                 temp.append(fhl)
             else:
                 temp.append(None)
@@ -85,7 +85,7 @@ class Stock:
                 gdqy_zzc_bl = %s,
 
                 fz_zzc_bl = %s,
-                cqfz_bdc_bl = %s,
+                cqzj_bdc_bl = %s,
 
                 ldbl = %s,
                 sdbl = %s
@@ -95,21 +95,22 @@ class Stock:
         for i, year in enumerate(self.years):
             zcfzb_zzc = self.zcfzb_zzc[i]  # 总资产
             temp = [
-                self.zcfzb_xjyydxj[i] / zcfzb_zzc,  # 现金与约当现金
-                self.zcfzb_yszk[i] / zcfzb_zzc,  # 应收账款
-                self.zcfzb_ch[i] / zcfzb_zzc,  # 存货
-                self.zcfzb_ldzc[i] / zcfzb_zzc,  # 流动资产
-                self.zcfzb_yfzk[i] / zcfzb_zzc,  # 应付账款
-                self.zcfzb_ldfz[i] / zcfzb_zzc,  # 流动负债
-                self.zcfzb_cqfz[i] / zcfzb_zzc,  # 长期负债
-                self.zcfzb_gdqy[i] / zcfzb_zzc,  # 股东权益
+                round(self.zcfzb_xjyydxj[i] / zcfzb_zzc * 100, 2),  # 现金与约当现金
+                round(self.zcfzb_yszk[i] / zcfzb_zzc * 100, 2),  # 应收账款
+                round(self.zcfzb_ch[i] / zcfzb_zzc * 100, 2),  # 存货
+                round(self.zcfzb_ldzc[i] / zcfzb_zzc * 100, 2),  # 流动资产
+                round(self.zcfzb_yfzk[i] / zcfzb_zzc * 100, 2),  # 应付账款
+                round(self.zcfzb_ldfz[i] / zcfzb_zzc * 100, 2),  # 流动负债
+                round(self.zcfzb_cqfz[i] / zcfzb_zzc * 100, 2),  # 长期负债
+                round(self.zcfzb_gdqy[i] / zcfzb_zzc * 100, 2),  # 股东权益
 
-                self.zcfzb_zfz[i] / zcfzb_zzc,  # 负债占资产比率
+                round(self.zcfzb_zfz[i] / zcfzb_zzc * 100, 2),  # 负债占资产比率
                 # 长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
-                (self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]),
+                round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2),
 
-                self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i],  # 流动比率：流动资产 / 流动负债
-                (self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i],  # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
+                round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2),  # 流动比率：流动资产 / 流动负债
+                # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
+                round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2),
 
                 self.code, year
             ]
