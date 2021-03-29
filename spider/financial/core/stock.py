@@ -70,7 +70,7 @@ class Stock:
 
         # 资产负债比率（占总资产%）
         # 现金与约当现金、应收账款、存货、流动资产、应付账款、流动负债、长期负债、股东权益
-        # 流动比率
+        # 流动比率、速动比率
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -82,7 +82,8 @@ class Stock:
                 ldfz_zzc_bl = %s,
                 cqfz_zzc_bl = %s,
                 gdqy_zzc_bl = %s,
-                ldbl = %s
+                ldbl = %s,
+                sdbl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -97,7 +98,8 @@ class Stock:
                 self.zcfzb_ldfz[i] / zcfzb_zzc,  # 流动负债
                 self.zcfzb_cqfz[i] / zcfzb_zzc,  # 长期负债
                 self.zcfzb_gdqy[i] / zcfzb_zzc,  # 股东权益
-                self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i],  # 流动比率
+                self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i],  # 流动比率：流动资产 / 流动负债
+                (self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i],  # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
                 self.code, year
             ]
             zcfzbl_sql_params.append(temp)
@@ -168,6 +170,7 @@ class Stock:
         self.zcfzb_ch = []  # 存货 CSV_LINE:21  DF_INDEX:19
         self.zcfzb_ldzc = []  # 流动资产 CSV_LINE:26  DF_INDEX:24
         self.zcfzb_yfzk = []  # 应付账款 CSV_LINE:61  DF_INDEX:59
+        self.zcfzb_yfkx = []  # 预付款项 CSV_LINE:9  DF_INDEX:7
         self.zcfzb_ldfz = []  # 流动负债 CSV_LINE:85  DF_INDEX:83
         self.zcfzb_cqfz = []  # 长期负债 CSV_LINE:94  DF_INDEX:92
         self.zcfzb_gdqy = []  # 股东权益 CSV_LINE:108  DF_INDEX:106
@@ -185,6 +188,8 @@ class Stock:
             self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
             # 应收账款
             self.zcfzb_yszk.append(float(change_text(data[6], 0)))
+            # 预付款项
+            self.zcfzb_yfkx.append(float(change_text(data[7], 0)))
             # 存货
             self.zcfzb_ch.append(float(change_text(data[19], 0)))
             # 流动资产
