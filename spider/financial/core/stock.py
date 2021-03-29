@@ -68,13 +68,24 @@ class Stock:
             fhl_sql_params.append(temp * 2)
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
 
-        # 现金与约当现金比率
-        xjyydxj_sql = 'UPDATE financial SET xjyydxj_bl = %s WHERE code = %s AND year = %s'
-        xjyydxj_sql_params = []
+        # 资产负债比率（占总资产%）
+        # 现金与约当现金、应收账款
+        zcfzbl_sql = """
+            UPDATE financial
+            SET
+                xjyydxj_bl = %s,
+                yszk_bl = %s
+            WHERE code = %s AND year = %s
+        """
+        zcfzbl_sql_params = []
         for i, year in enumerate(self.years):
-            temp = [self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i], self.code, year]
-            xjyydxj_sql_params.append(temp)
-        replace_db(xjyydxj_sql, xjyydxj_sql_params, is_many=True)
+            temp = [
+                self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i],  # 现金与约当现金
+                self.zcfzb_yszk[i] / self.zcfzb_zzc[i],  # 应收账款
+                self.code, year
+            ]
+            zcfzbl_sql_params.append(temp)
+        replace_db(zcfzbl_sql, zcfzbl_sql_params, is_many=True)
 
     # 市场
     def market(self):
@@ -137,6 +148,7 @@ class Stock:
         df = pd.read_csv(self.__url_zcfzb, encoding=self.encoding)
         self.zcfzb_zgb = []  # 总股本  CSV_LINE:96  DF_INDEX:94
         self.zcfzb_xjyydxj = []  # 现金与约当现金  CSV_LINE:2+3+4+5+6  DF_INDEX:0+1+2+3+4
+        self.zcfzb_yszk = []  # 应收账款  CSV_LINE:8  DF_INDEX:6
         self.zcfzb_zzc = []  # 总资产  CSV_LINE:53  DF_INDEX:51
         for year in self.years:
             data = df[f'{year}-12-31']
@@ -149,6 +161,8 @@ class Stock:
             v_csv_5 = float(change_text(data[3], 0))
             v_csv_6 = float(change_text(data[4], 0))
             self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
+            # 应收账款
+            self.zcfzb_yszk.append(float(change_text(data[6], 0)))
             # 总资产
             self.zcfzb_zzc.append(float(change_text(data[51], 0)))
 
