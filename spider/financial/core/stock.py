@@ -70,6 +70,7 @@ class Stock:
 
         # 资产负债比率（占总资产%）
         # 现金与约当现金、应收账款、存货、流动资产、应付账款、流动负债、长期负债、股东权益
+        # 流动比率
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -80,7 +81,8 @@ class Stock:
                 yfzk_zzc_bl = %s,
                 ldfz_zzc_bl = %s,
                 cqfz_zzc_bl = %s,
-                gdqy_zzc_bl = %s
+                gdqy_zzc_bl = %s,
+                ldbl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -95,6 +97,7 @@ class Stock:
                 self.zcfzb_ldfz[i] / zcfzb_zzc,  # 流动负债
                 self.zcfzb_cqfz[i] / zcfzb_zzc,  # 长期负债
                 self.zcfzb_gdqy[i] / zcfzb_zzc,  # 股东权益
+                self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i],  # 流动比率
                 self.code, year
             ]
             zcfzbl_sql_params.append(temp)
