@@ -4,7 +4,7 @@ import lxml
 
 from lxml import etree
 from financial.config import URL_GSZL, URL_FHPX, URL_ZCFZB, URL_LRB, URL_XJLLB
-from financial.utils import pinyin, change_text, replace_db
+from financial.utils import pinyin, read_http_csv, change_text, replace_db
 
 class Stock:
 
@@ -69,14 +69,15 @@ class Stock:
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
 
         # 资产负债比率（占总资产%）
-        # 现金与约当现金、应收账款、存货、流动资产
+        # 现金与约当现金、应收账款、存货、流动资产、应付账款
         zcfzbl_sql = """
             UPDATE financial
             SET
                 xjyydxj_zzc_bl = %s,
                 yszk_zzc_bl = %s,
                 ch_zzc_bl = %s,
-                ldzc_zzc_bl = %s
+                ldzc_zzc_bl = %s,
+                yfzk_zzc_bl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -87,10 +88,13 @@ class Stock:
                 self.zcfzb_yszk[i] / zcfzb_zzc,  # 应收账款
                 self.zcfzb_ch[i] / zcfzb_zzc,  # 存货
                 self.zcfzb_ldzc[i] / zcfzb_zzc,  # 流动资产
+                self.zcfzb_yfzk[i] / zcfzb_zzc,  # 应付账款
                 self.code, year
             ]
             zcfzbl_sql_params.append(temp)
         replace_db(zcfzbl_sql, zcfzbl_sql_params, is_many=True)
+
+        1 / 0
 
     # 市场
     def market(self):
@@ -156,7 +160,8 @@ class Stock:
         self.zcfzb_yszk = []  # 应收账款  CSV_LINE:8  DF_INDEX:6
         self.zcfzb_ch = []  # 存货 CSV_LINE:21  DF_INDEX:19
         self.zcfzb_ldzc = []  # 流动资产 CSV_LINE:26  DF_INDEX:24
-        self.zcfzb_zzc = []  # 总资产  CSV_LINE:53  DF_INDEX:51
+        self.zcfzb_yfzk = []  # 应付账款 CSV_LINE:61  DF_INDEX:59
+        self.zcfzb_zzc = []  # 总资产 CSV_LINE:53  DF_INDEX:51
         for year in self.years:
             data = df[f'{year}-12-31']
             # 总股本
@@ -174,6 +179,8 @@ class Stock:
             self.zcfzb_ch.append(float(change_text(data[19], 0)))
             # 流动资产
             self.zcfzb_ldzc.append(float(change_text(data[24], 0)))
+            # 应付账款
+            self.zcfzb_yfzk.append(float(change_text(data[59], 0)))
             # 总资产
             self.zcfzb_zzc.append(float(change_text(data[51], 0)))
 
