@@ -18,12 +18,12 @@ def pinyin(string: str) -> str:
     return result.lower()
 
 # 修改垃圾数据
-def change_text(string: str) -> object:
+def change_text(string: str, default_value=None) -> object:
     if string is None:
-        return None
+        return default_value
     string = string.strip()
     if string == '--' or string == '':
-        return None
+        return default_value
     return string
 
 # 获取数据库连接

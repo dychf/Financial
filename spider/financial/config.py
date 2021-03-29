@@ -19,7 +19,6 @@ DB_CONFIG = {
     'charset': 'utf8'
 }
 
-
 # 行业分类
 URL_CATEGORY = 'http://quotes.money.163.com/old'
 CATEGORY_STOCK_PAGE_SIZE = 50
@@ -27,6 +26,9 @@ URL_CATEGORY_STOCK = 'http://quotes.money.163.com/hs/service/diyrank.php?page={p
 
 # 基本信息
 URL_GSZL = 'http://quotes.money.163.com/f10/gszl_{stock_code}.html'
+
+# 分红派息
+URL_FHPX = 'http://quotes.money.163.com/f10/fhpg_{stock_code}.html'
 
 # 三表数据源
 URL_ZCFZB = 'http://quotes.money.163.com/service/zcfzb_{stock_code}.html?type=year'  # 资产负债表
