@@ -21,7 +21,7 @@ class Stock:
 
     # 更新数据库
     def into_db(self):
-        # 更新基础信息
+        # 基础信息
         gszl_sql = """
             REPLACE INTO stock(
                 code, zwjc, zwjc_py, gsqc, dy, zzxs, gswz, zyyw, jyfw,
@@ -37,7 +37,7 @@ class Stock:
         ]
         replace_db(gszl_sql, gszl_sql_params)
 
-        # 插入现金流量表数据
+        # 营业活动现金流量、投资活动现金流量、筹资活动现金流量
         xjllb_sql = """
             INSERT INTO financial(code, year, yyhdxjll, tzhdxjll, czhdxjll)
             VALUES(%s, %s, %s, %s, %s)
@@ -49,7 +49,7 @@ class Stock:
         ]
         replace_db(xjllb_sql, xjllb_sql_params, is_many=True, is_special_sql=True)
 
-        # 插入分红派息数据
+        # 分红派息
         # 分红率：(每十股分红金额 * 总股本) / 10 / 归属于母公司所有者的净利润
         fhl_sql = """
             INSERT INTO dividend(code, year, sg, zz, px, cqcxr, fhl)
@@ -67,6 +67,14 @@ class Stock:
                 temp.append(None)
             fhl_sql_params.append(temp * 2)
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
+
+        # 现金与约当现金比率
+        xjyydxj_sql = 'UPDATE financial SET xjyydxj_bl = %s WHERE code = %s AND year = %s'
+        xjyydxj_sql_params = []
+        for i, year in enumerate(self.years):
+            temp = [self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i], self.code, year]
+            xjyydxj_sql_params.append(temp)
+        replace_db(xjyydxj_sql, xjyydxj_sql_params, is_many=True)
 
     # 市场
     def market(self):
@@ -128,9 +136,21 @@ class Stock:
     def __get_data_zcfzb(self):
         df = pd.read_csv(self.__url_zcfzb, encoding=self.encoding)
         self.zcfzb_zgb = []  # 总股本  CSV_LINE:96  DF_INDEX:94
+        self.zcfzb_xjyydxj = []  # 现金与约当现金  CSV_LINE:2+3+4+5+6  DF_INDEX:0+1+2+3+4
+        self.zcfzb_zzc = []  # 总资产  CSV_LINE:53  DF_INDEX:51
         for year in self.years:
             data = df[f'{year}-12-31']
-            self.zcfzb_zgb.append(float(data[94]))
+            # 总股本
+            self.zcfzb_zgb.append(float(change_text(data[94], 0)))
+            # 现金与约当现金
+            v_csv_2 = float(change_text(data[0], 0))
+            v_csv_3 = float(change_text(data[1], 0))
+            v_csv_4 = float(change_text(data[2], 0))
+            v_csv_5 = float(change_text(data[3], 0))
+            v_csv_6 = float(change_text(data[4], 0))
+            self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
+            # 总资产
+            self.zcfzb_zzc.append(float(change_text(data[51], 0)))
 
     # 利润表
     def __get_data_lrb(self):
