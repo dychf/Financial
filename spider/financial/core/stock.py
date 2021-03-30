@@ -75,7 +75,7 @@ class Stock:
         # ----- 偿债能力 -----
         # 流动比率、速动比率
         # ----- 经营能力 -----
-        # 应收账款周转率(次)、平均收现日数
+        # 应收账款周转率(次)、平均收现日数、存货周转率(次)
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -95,7 +95,8 @@ class Stock:
                 sdbl = %s,
 
                 yszkzzl = %s,
-                pjsxrs = %s
+                pjsxrs = %s,
+                chzzl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -122,6 +123,7 @@ class Stock:
                 # 应收账款周转率(次)：营业收入 / 应收账款
                 round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2),
                 round(360 / (self.lrb_yysr[i] / self.zcfzb_yszk[i]), 2),  # 平均收现日数：360 / 应收账款周转率(次)
+                round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2),  # 存货周转率(次)：营业成本 / 存货
 
                 self.code, year
             ]
@@ -245,10 +247,12 @@ class Stock:
         df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
         self.lrb_jlr = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
         self.lrb_yysr = []  # 营业收入  CSV_LINE:2  DF_INDEX:0
+        self.lrb_yycb = []  # 营业成本  CSV_LINE:10  DF_INDEX:8
         for year in self.years:
             data = df[f'{year}-12-31']
             self.lrb_jlr.append(change_text(data[40], 0))
             self.lrb_yysr.append(change_text(data[0], 0))
+            self.lrb_yycb.append(change_text(data[8], 0))
 
     # 现金流量表
     def __get_data_xjllb(self):
