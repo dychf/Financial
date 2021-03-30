@@ -75,7 +75,7 @@ class Stock:
         # ----- 偿债能力 -----
         # 流动比率、速动比率
         # ----- 经营能力 -----
-        # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)
+        # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)、不动产/厂房及设备周转率、总资产周转率(次)
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -98,7 +98,8 @@ class Stock:
                 pjsxrs = %s,
                 chzzl = %s,
                 pjxhrs = %s,
-                gdzczzl = %s
+                gdzczzl = %s,
+                zzczzl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -129,6 +130,7 @@ class Stock:
                 round(360 / round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2), 2),  # 平均销货日数(在库天数)
                 # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
                 round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2),
+                round(self.lrb_yysr[i] / self.zcfzb_zzc[i], 2),  # 总资产周转率(次)：营业收入 / 总资产
 
                 self.code, year
             ]
