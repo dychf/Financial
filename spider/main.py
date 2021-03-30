@@ -28,12 +28,12 @@ def start_up():
     categorys = Category.get_all_category()
     all_category_id = [category.id for category in categorys]
     if start_category_id in all_category_id:
-        categorys = categorys[all_category_id.index(start_category_id) + 1:]
+        categorys = categorys[all_category_id.index(start_category_id):]
 
     for category in categorys:
         category.into_db()
         for stock_code in category.get_stock_codes():
-            if category.id == config['category'] and stock_code <= config['stock']:
+            if category.id == config['category'] and config['stock'] is not None and stock_code <= config['stock']:
                 continue
             stock = Stock(stock_code, category)
             stock.into_db()

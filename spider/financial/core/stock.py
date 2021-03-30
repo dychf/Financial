@@ -122,7 +122,6 @@ class Stock:
         zcfzbl_sql_params = []
         years_len = len(self.years)
         for i, year in enumerate(self.years):
-            zcfzb_zzc = self.zcfzb_zzc[i]  # 总资产
             # 现金流量允当比率
             try:
                 # 近5年营业活动现金流量 / 近5年(资本支出 + 存货增加额 + 现金股利)
@@ -132,52 +131,60 @@ class Stock:
             except:
                 xjllydbl = None
             temp = [
-                round(self.zcfzb_xjyydxj[i] / zcfzb_zzc * 100, 2),  # 现金与约当现金
-                round(self.zcfzb_yszk[i] / zcfzb_zzc * 100, 2),  # 应收账款
-                round(self.zcfzb_ch[i] / zcfzb_zzc * 100, 2),  # 存货
-                round(self.zcfzb_ldzc[i] / zcfzb_zzc * 100, 2),  # 流动资产
-                round(self.zcfzb_yfzk[i] / zcfzb_zzc * 100, 2),  # 应付账款
-                round(self.zcfzb_ldfz[i] / zcfzb_zzc * 100, 2),  # 流动负债
-                round(self.zcfzb_cqfz[i] / zcfzb_zzc * 100, 2),  # 长期负债
-                round(self.zcfzb_gdqy[i] / zcfzb_zzc * 100, 2),  # 股东权益
+                self.__calc("round(self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 现金与约当现金
+                self.__calc("round(self.zcfzb_yszk[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 应收账款
+                self.__calc("round(self.zcfzb_ch[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 存货
+                self.__calc("round(self.zcfzb_ldzc[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 流动资产
+                self.__calc("round(self.zcfzb_yfzk[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 应付账款
+                self.__calc("round(self.zcfzb_ldfz[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 流动负债
+                self.__calc("round(self.zcfzb_cqfz[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 长期负债
+                self.__calc("round(self.zcfzb_gdqy[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 股东权益
 
-                round(self.zcfzb_zfz[i] / zcfzb_zzc * 100, 2),  # 负债占资产比率
+                self.__calc("round(self.zcfzb_zfz[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 负债占资产比率
                 # 长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
-                round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2),
+                self.__calc("round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)", i),
 
-                round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2),  # 流动比率：流动资产 / 流动负债
+                self.__calc("round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2)", i),  # 流动比率：流动资产 / 流动负债
                 # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
-                round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2),
+                self.__calc("round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2)", i),
 
                 # 应收账款周转率(次)：营业收入 / 应收账款
-                round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2),
-                round(360 / round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2), 2),  # 平均收现日数：360 / 应收账款周转率(次)
-                round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2),  # 存货周转率(次)：营业成本 / 存货
-                round(360 / round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2), 2),  # 平均销货日数(在库天数)
+                self.__calc("round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2)", i),
+                self.__calc("round(360 / round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2), 2)", i),  # 平均收现日数：360 / 应收账款周转率(次)
+                self.__calc("round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2)", i),  # 存货周转率(次)：营业成本 / 存货
+                self.__calc("round(360 / round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2), 2)", i),  # 平均销货日数(在库天数)
                 # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
-                round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2),
-                round(self.lrb_yysr[i] / zcfzb_zzc, 2),  # 总资产周转率(次)：营业收入 / 总资产
+                self.__calc("round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2)", i),
+                self.__calc("round(self.lrb_yysr[i] / self.zcfzb_zzc[i], 2)", i),  # 总资产周转率(次)：营业收入 / 总资产
 
-                round(self.lrb_jlr_gm[i] / self.zcfzb_gdqy_gm[i] * 100, 2),  # 股东权益报酬率(ROE)
-                round(self.lrb_jlr_gm[i] / zcfzb_zzc * 100, 2),  # 总资产报酬率(ROA)
+                self.__calc("round(self.lrb_jlr_gm[i] / self.zcfzb_gdqy_gm[i] * 100, 2)", i),  # 股东权益报酬率(ROE)
+                self.__calc("round(self.lrb_jlr_gm[i] / self.zcfzb_zzc[i] * 100, 2)", i),  # 总资产报酬率(ROA)
                 # 营业毛利率：(营业收入合计 - 营业成本合计) /  营业收入合计
-                round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2),
-                round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2),  # 营业利益率：营业利润 / 营业收入
+                self.__calc("round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2)", i),
+                self.__calc("round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2)", i),  # 营业利益率：营业利润 / 营业收入
                 # 经营安全边际率：营业利益率 / 营业毛利率
-                round(round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2) / round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2) * 100, 2),
-                round(self.lrb_jlr[i] / self.lrb_yysr[i] * 100, 2),  # 净利率：净利润 / 营业收入
+                self.__calc("round(round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2) / round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2) * 100, 2)", i),
+                self.__calc("round(self.lrb_jlr[i] / self.lrb_yysr[i] * 100, 2)", i),  # 净利率：净利润 / 营业收入
                 self.lrb_mgyy[i],  # 每股盈余
                 self.lrb_jlr[i],  # 税后净利
 
-                round(self.xjllb_yyhdxjll[i] / self.zcfzb_ldfz[i] * 100, 2),  # 现金流量比率：营业活动现金流量 / 流动负债
+                self.__calc("round(self.xjllb_yyhdxjll[i] / self.zcfzb_ldfz[i] * 100, 2)", i),  # 现金流量比率：营业活动现金流量 / 流动负债
                 xjllydbl,  # 现金流量允当比率：近5年营业活动现金流量 /  近5年(资本支出 + 存货减少额 + 现金股利)
                 # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
-                round((self.xjllb_yyhdxjll[i] - self.xjllb_xjgl[i]) / (zcfzb_zzc - self.zcfzb_ldfz[i]) * 100, 2),
+                self.__calc("round((self.xjllb_yyhdxjll[i] - self.xjllb_xjgl[i]) / (self.zcfzb_zzc[i] - self.zcfzb_ldfz[i]) * 100, 2)", i),
 
                 self.code, year
             ]
             zcfzbl_sql_params.append(temp)
         replace_db(zcfzbl_sql, zcfzbl_sql_params, is_many=True)
+
+    # 计算
+    def __calc(self, calc_str: str, i: int) -> float:
+        try:
+            value = eval(calc_str)
+        except ZeroDivisionError:
+            value = None
+        return value
 
     # 市场
     def market(self):
