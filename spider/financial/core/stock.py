@@ -77,7 +77,7 @@ class Stock:
         # ----- 经营能力 -----
         # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)、不动产/厂房及设备周转率、总资产周转率(次)
         # ----- 获利能力 -----
-        # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余
+        # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余、税后净利
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -109,7 +109,8 @@ class Stock:
                 yylyl = %s,
                 jyaqbjl = %s,
                 jll = %s,
-                mgyy = %s
+                mgyy = %s,
+                shjl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -151,6 +152,7 @@ class Stock:
                 round(round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2) / round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2) * 100, 2),
                 round(self.lrb_jlr[i] / self.lrb_yysr[i] * 100, 2),  # 净利率：净利润 / 营业收入
                 self.lrb_mgyy[i],  # 每股盈余
+                self.lrb_jlr[i],  # 税后净利
 
                 self.code, year
             ]
