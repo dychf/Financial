@@ -79,7 +79,7 @@ class Stock:
         # ----- 获利能力 -----
         # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余、税后净利
         # ----- 现金流量 -----
-        # 现金流量比率、现金再投资比例
+        # 现金流量比率、现金流量允当比率、现金再投资比例
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -115,12 +115,22 @@ class Stock:
                 shjl = %s,
 
                 xjllbl = %s,
+                xjllydbl = %s,
                 xjztzbl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
+        years_len = len(self.years)
         for i, year in enumerate(self.years):
             zcfzb_zzc = self.zcfzb_zzc[i]  # 总资产
+            # 现金流量允当比率
+            try:
+                # 近5年营业活动现金流量 / 近5年(资本支出 + 存货增加额 + 现金股利)
+                # 存货增加额 = -(存货减少额)  注：存货减少额中负数表示增加
+                xjllydbl = sum(self.xjllb_yyhdxjll[i:i + 5]) / (sum(self.xjllb_zbzc[i:i + 5]) - sum(self.xjllb_chjse[i:i + 5]) + sum(self.xjllb_xjgl[i:i + 5]))
+                xjllydbl = round(xjllydbl * 100, 2)
+            except:
+                xjllydbl = None
             temp = [
                 round(self.zcfzb_xjyydxj[i] / zcfzb_zzc * 100, 2),  # 现金与约当现金
                 round(self.zcfzb_yszk[i] / zcfzb_zzc * 100, 2),  # 应收账款
@@ -160,6 +170,7 @@ class Stock:
                 self.lrb_jlr[i],  # 税后净利
 
                 round(self.xjllb_yyhdxjll[i] / self.zcfzb_ldfz[i] * 100, 2),  # 现金流量比率：营业活动现金流量 / 流动负债
+                xjllydbl,  # 现金流量允当比率：近5年营业活动现金流量 /  近5年(资本支出 + 存货减少额 + 现金股利)
                 # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
                 round((self.xjllb_yyhdxjll[i] - self.xjllb_xjgl[i]) / (zcfzb_zzc - self.zcfzb_ldfz[i]) * 100, 2),
 
@@ -313,9 +324,13 @@ class Stock:
         self.xjllb_tzhdxjll = []  # 投资活动现金流量  CSV_LINE:41  DF_INDEX:39
         self.xjllb_czhdxjll = []  # 筹资活动现金流量  CSV_LINE:53  DF_INDEX:51
         self.xjllb_xjgl = []  # 现金股利  CSV_LINE:49  DF_INDEX:47
+        self.xjllb_zbzc = []  # 资本支出  CSV_LINE:34  DF_INDEX:32
+        self.xjllb_chjse = []  # 存货减少额  CSV_LINE:76  DF_INDEX:74
         for year in self.years:
             data = df[f'{year}-12-31']
             self.xjllb_yyhdxjll.append(change_text(data[24], 0))
             self.xjllb_tzhdxjll.append(change_text(data[39], 0))
             self.xjllb_czhdxjll.append(change_text(data[51], 0))
             self.xjllb_xjgl.append(change_text(data[47], 0))
+            self.xjllb_zbzc.append(change_text(data[32], 0))
+            self.xjllb_chjse.append(change_text(data[74], 0))
