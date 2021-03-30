@@ -79,7 +79,7 @@ class Stock:
         # ----- 获利能力 -----
         # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余、税后净利
         # ----- 现金流量 -----
-        # 现金流量比率
+        # 现金流量比率、现金再投资比例
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -114,7 +114,8 @@ class Stock:
                 mgyy = %s,
                 shjl = %s,
 
-                xjllbl = %s
+                xjllbl = %s,
+                xjztzbl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -145,10 +146,10 @@ class Stock:
                 round(360 / round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2), 2),  # 平均销货日数(在库天数)
                 # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
                 round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2),
-                round(self.lrb_yysr[i] / self.zcfzb_zzc[i], 2),  # 总资产周转率(次)：营业收入 / 总资产
+                round(self.lrb_yysr[i] / zcfzb_zzc, 2),  # 总资产周转率(次)：营业收入 / 总资产
 
                 round(self.lrb_jlr_gm[i] / self.zcfzb_gdqy_gm[i] * 100, 2),  # 股东权益报酬率(ROE)
-                round(self.lrb_jlr_gm[i] / self.zcfzb_zzc[i] * 100, 2),  # 总资产报酬率(ROA)
+                round(self.lrb_jlr_gm[i] / zcfzb_zzc * 100, 2),  # 总资产报酬率(ROA)
                 # 营业毛利率：(营业收入合计 - 营业成本合计) /  营业收入合计
                 round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2),
                 round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2),  # 营业利益率：营业利润 / 营业收入
@@ -159,6 +160,8 @@ class Stock:
                 self.lrb_jlr[i],  # 税后净利
 
                 round(self.xjllb_yyhdxjll[i] / self.zcfzb_ldfz[i] * 100, 2),  # 现金流量比率：营业活动现金流量 / 流动负债
+                # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
+                round((self.xjllb_yyhdxjll[i] - self.xjllb_xjgl[i]) / (zcfzb_zzc - self.zcfzb_ldfz[i]) * 100, 2),
 
                 self.code, year
             ]
@@ -309,8 +312,10 @@ class Stock:
         self.xjllb_yyhdxjll = []  # 营业活动现金流量  CSV_LINE:26  DF_INDEX:24
         self.xjllb_tzhdxjll = []  # 投资活动现金流量  CSV_LINE:41  DF_INDEX:39
         self.xjllb_czhdxjll = []  # 筹资活动现金流量  CSV_LINE:53  DF_INDEX:51
+        self.xjllb_xjgl = []  # 现金股利  CSV_LINE:49  DF_INDEX:47
         for year in self.years:
             data = df[f'{year}-12-31']
             self.xjllb_yyhdxjll.append(change_text(data[24], 0))
             self.xjllb_tzhdxjll.append(change_text(data[39], 0))
             self.xjllb_czhdxjll.append(change_text(data[51], 0))
+            self.xjllb_xjgl.append(change_text(data[47], 0))
