@@ -229,6 +229,8 @@ class Stock:
             self.fhpx_cqcxr = []  # 除权除息日
             for i, node in enumerate(nodes):
                 all_td = node.findall('td')
+                if len(all_td) == 1:  # 暂无数据
+                    break
                 self.fhpx_years.append(all_td[1].text)
                 self.fhpx_sg.append(change_text(all_td[2].text, 0))
                 self.fhpx_zz.append(change_text(all_td[3].text, 0))
