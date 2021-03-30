@@ -61,7 +61,7 @@ class Stock:
             temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_cqcxr[i]]
             if year in self.years:
                 index = self.years.index(year)
-                fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[index] / 10 / self.lrb_jlr[index] * 100, 2)
+                fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[index] / 10 / self.lrb_jlr_gm[index] * 100, 2)
                 temp.append(fhl)
             else:
                 temp.append(None)
@@ -76,6 +76,8 @@ class Stock:
         # 流动比率、速动比率
         # ----- 经营能力 -----
         # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)、不动产/厂房及设备周转率、总资产周转率(次)
+        # ----- 获利能力 -----
+        # 股东权益报酬率(ROE)
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -99,7 +101,9 @@ class Stock:
                 chzzl = %s,
                 pjxhrs = %s,
                 gdzczzl = %s,
-                zzczzl = %s
+                zzczzl = %s,
+
+                gdqybcl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -131,6 +135,8 @@ class Stock:
                 # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
                 round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2),
                 round(self.lrb_yysr[i] / self.zcfzb_zzc[i], 2),  # 总资产周转率(次)：营业收入 / 总资产
+
+                round(self.lrb_jlr_gm[i] / self.zcfzb_gdqy_gm[i] * 100, 2),  # 股东权益报酬率(ROE)
 
                 self.code, year
             ]
@@ -206,6 +212,7 @@ class Stock:
         self.zcfzb_ldfz = []  # 流动负债 CSV_LINE:85  DF_INDEX:83
         self.zcfzb_cqfz = []  # 长期负债 CSV_LINE:94  DF_INDEX:92
         self.zcfzb_gdqy = []  # 股东权益 CSV_LINE:108  DF_INDEX:106
+        self.zcfzb_gdqy_gm = []  # 归属母公司股东权益 CSV_LINE:106  DF_INDEX:104
         self.zcfzb_gdzc = []  # 固定资产 CSV_LINE:38  DF_INDEX:36
         self.zcfzb_zjgc = []  # 在建工程 CSV_LINE:39  DF_INDEX:37
         self.zcfzb_gcwz = []  # 工程物资 CSV_LINE:40  DF_INDEX:38
@@ -238,6 +245,8 @@ class Stock:
             self.zcfzb_cqfz.append(change_text(data[92], 0))
             # 股东权益
             self.zcfzb_gdqy.append(change_text(data[106], 0))
+            # 归属母公司股东权益
+            self.zcfzb_gdqy_gm.append(change_text(data[104], 0))
             # 总负债
             self.zcfzb_zfz.append(change_text(data[93], 0))
             # 固定资产
@@ -252,12 +261,12 @@ class Stock:
     # 利润表
     def __get_data_lrb(self):
         df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
-        self.lrb_jlr = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
+        self.lrb_jlr_gm = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
         self.lrb_yysr = []  # 营业收入  CSV_LINE:2  DF_INDEX:0
         self.lrb_yycb = []  # 营业成本  CSV_LINE:10  DF_INDEX:8
         for year in self.years:
             data = df[f'{year}-12-31']
-            self.lrb_jlr.append(change_text(data[40], 0))
+            self.lrb_jlr_gm.append(change_text(data[40], 0))
             self.lrb_yysr.append(change_text(data[0], 0))
             self.lrb_yycb.append(change_text(data[8], 0))
 
