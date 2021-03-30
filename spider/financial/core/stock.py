@@ -78,6 +78,8 @@ class Stock:
         # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)、不动产/厂房及设备周转率、总资产周转率(次)
         # ----- 获利能力 -----
         # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余、税后净利
+        # ----- 现金流量 -----
+        # 现金流量比率
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -110,7 +112,9 @@ class Stock:
                 jyaqbjl = %s,
                 jll = %s,
                 mgyy = %s,
-                shjl = %s
+                shjl = %s,
+
+                xjllbl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -153,6 +157,8 @@ class Stock:
                 round(self.lrb_jlr[i] / self.lrb_yysr[i] * 100, 2),  # 净利率：净利润 / 营业收入
                 self.lrb_mgyy[i],  # 每股盈余
                 self.lrb_jlr[i],  # 税后净利
+
+                round(self.xjllb_yyhdxjll[i] / self.zcfzb_ldfz[i] * 100, 2),  # 现金流量比率：营业活动现金流量 / 流动负债
 
                 self.code, year
             ]
@@ -305,6 +311,6 @@ class Stock:
         self.xjllb_czhdxjll = []  # 筹资活动现金流量  CSV_LINE:53  DF_INDEX:51
         for year in self.years:
             data = df[f'{year}-12-31']
-            self.xjllb_yyhdxjll.append(data[24])
-            self.xjllb_tzhdxjll.append(data[39])
-            self.xjllb_czhdxjll.append(data[51])
+            self.xjllb_yyhdxjll.append(change_text(data[24], 0))
+            self.xjllb_tzhdxjll.append(change_text(data[39], 0))
+            self.xjllb_czhdxjll.append(change_text(data[51], 0))
