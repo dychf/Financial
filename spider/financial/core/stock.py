@@ -77,7 +77,7 @@ class Stock:
         # ----- 经营能力 -----
         # 应收账款周转率(次)、平均收现日数、存货周转率(次)、平均销货日数(在库天数)、不动产/厂房及设备周转率、总资产周转率(次)
         # ----- 获利能力 -----
-        # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率
+        # 股东权益报酬率(ROE)、总资产报酬率(ROA)、营业毛利率、营业利益率、经营安全边际率、净利率、每股盈余
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -108,7 +108,8 @@ class Stock:
                 yymll = %s,
                 yylyl = %s,
                 jyaqbjl = %s,
-                jll = %s
+                jll = %s,
+                mgyy = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -149,6 +150,7 @@ class Stock:
                 # 经营安全边际率：营业利益率 / 营业毛利率
                 round(round(self.lrb_yylr[i] / self.lrb_yysr[i] * 100, 2) / round((self.lrb_yysr_hj[i] - self.lrb_yycb_hj[i]) / self.lrb_yysr_hj[i] * 100, 2) * 100, 2),
                 round(self.lrb_jlr[i] / self.lrb_yysr[i] * 100, 2),  # 净利率：净利润 / 营业收入
+                self.lrb_mgyy[i],  # 每股盈余
 
                 self.code, year
             ]
@@ -280,6 +282,7 @@ class Stock:
         self.lrb_yycb = []  # 营业成本  CSV_LINE:10  DF_INDEX:8
         self.lrb_yycb_hj = []  # 营业成本合计  CSV_LINE:10~21  DF_INDEX:8~19
         self.lrb_yylr = []  # 营业利润  CSV_LINE:34  DF_INDEX:32
+        self.lrb_mgyy = []  # 每股盈余  CSV_LINE:45  DF_INDEX:43
         for year in self.years:
             data = df[f'{year}-12-31']
             self.lrb_jlr_gm.append(change_text(data[40], 0))
@@ -289,6 +292,7 @@ class Stock:
             self.lrb_yycb.append(change_text(data[8], 0))
             self.lrb_yycb_hj.append(sum([change_text(v, 0) for v in data[8:20]]))
             self.lrb_yylr.append(change_text(data[32], 0))
+            self.lrb_mgyy.append(change_text(data[43], 0))
 
     # 现金流量表
     def __get_data_xjllb(self):
