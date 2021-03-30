@@ -22,7 +22,7 @@ DB_CONFIG = {
 # 行业分类
 URL_CATEGORY = 'http://quotes.money.163.com/old'
 CATEGORY_STOCK_PAGE_SIZE = 50
-URL_CATEGORY_STOCK = 'http://quotes.money.163.com/hs/service/diyrank.php?page={page_no}&count={page_size}&query=PLATE_IDS:{category_id}&fields=SYMBOL'
+URL_CATEGORY_STOCK = 'http://quotes.money.163.com/hs/service/diyrank.php?query=PLATE_IDS:{category_id}&fields=SYMBOL&sort=SYMBOL&order=asc&page={page_no}&count={page_size}'
 
 # 基本信息
 URL_GSZL = 'http://quotes.money.163.com/f10/gszl_{stock_code}.html'
