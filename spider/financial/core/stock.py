@@ -97,7 +97,8 @@ class Stock:
                 yszkzzl = %s,
                 pjsxrs = %s,
                 chzzl = %s,
-                pjxhrs = %s
+                pjxhrs = %s,
+                gdzczzl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -126,6 +127,8 @@ class Stock:
                 round(360 / round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2), 2),  # 平均收现日数：360 / 应收账款周转率(次)
                 round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2),  # 存货周转率(次)：营业成本 / 存货
                 round(360 / round(self.lrb_yycb[i] / self.zcfzb_ch[i], 2), 2),  # 平均销货日数(在库天数)
+                # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
+                round(self.lrb_yysr[i] / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]), 2),
 
                 self.code, year
             ]
