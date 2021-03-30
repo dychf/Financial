@@ -18,15 +18,25 @@ def pinyin(string: str) -> str:
     return result.lower()
 
 # 修改垃圾数据
-def change_text(value: str, default_value=None) -> object:
+def change_text(value: str, default_value=None, to_type=float) -> object:
+
+    def to(v):
+        if to_type is str:
+            return str(v)
+        if to_type is float:
+            return float(v)
+        if to_type is int:
+            return int(v)
+        return v
+
     if value is None:
         return default_value
     if type(value) is str:
         value = value.strip()
         if value == '--' or value == '':
-            return default_value
-        return value
-    return float(value)
+            return default_value  
+        return to(value)
+    return to(value)
 
 # 获取数据库连接
 def get_db_conn_cur():

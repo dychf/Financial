@@ -68,10 +68,14 @@ class Stock:
             fhl_sql_params.append(temp * 2)
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
 
-        # 资产负债比率（占总资产%）
+        # ----- 资产负债比率（占总资产%）-----
         # 现金与约当现金、应收账款、存货、流动资产、应付账款、流动负债、长期负债、股东权益
+        # ----- 财务结构 -----
         # 负债占资产比率、长期资金占不动产/厂房及设备比率
+        # ----- 偿债能力 -----
         # 流动比率、速动比率
+        # ----- 经营能力 -----
+        # 应收账款周转率(次)
         zcfzbl_sql = """
             UPDATE financial
             SET
@@ -88,7 +92,9 @@ class Stock:
                 cqzj_bdc_bl = %s,
 
                 ldbl = %s,
-                sdbl = %s
+                sdbl = %s,
+
+                yszkzzl = %s
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
@@ -111,6 +117,9 @@ class Stock:
                 round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2),  # 流动比率：流动资产 / 流动负债
                 # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
                 round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2),
+
+                # 应收账款周转率(次)：营业收入 / 应收账款
+                round(self.lrb_yysr[i] / self.zcfzb_yszk[i], 2),
 
                 self.code, year
             ]
@@ -135,7 +144,7 @@ class Stock:
         response = requests.get(self.__url_gszl)
         if response.status_code == 200:
             html = etree.HTML(response.text)
-            self.zzxs = change_text(html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[2]')[0].text)  # 组织形式
+            self.zzxs = change_text(html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[2]')[0].text, to_type=str)  # 组织形式
             self.dy = html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[4]')[0].text  # 地域
             self.zwjc = html.xpath('/html/body/div[2]/div[4]/table/tr[2]/td[2]')[0].text  # 中文简称
             self.zwjc_py = pinyin(self.zwjc)  # 中文简称_拼音首字母
@@ -143,16 +152,16 @@ class Stock:
 
             comment = html.xpath('/html/body/div[2]/div[4]/table/comment()')[0]
             comment = etree.fromstring(comment.text)
-            self.gswz = change_text(comment.xpath('/tr/td[2]')[0].text)  # 公司网站
+            self.gswz = change_text(comment.xpath('/tr/td[2]')[0].text, to_type=str)  # 公司网站
 
             self.zyyw = html.xpath('/html/body/div[2]/div[4]/table/tr[10]/td[2]')[0].text.strip()  # 主营业务
             self.jyfw = html.xpath('/html/body/div[2]/div[4]/table/tr[11]/td[2]')[0].text.strip()  # 经营范围
-            self.clrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[1]/td[2]')[0].text)  # 成立日期
-            self.ssrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[2]/td[2]')[0].text)  # 上市日期
+            self.clrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[1]/td[2]')[0].text, to_type=str)  # 成立日期
+            self.ssrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[2]/td[2]')[0].text, to_type=str)  # 上市日期
             self.sssc = self.market()  # 上市市场
-            self.zcxs = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[16]/td[2]')[0].text)  # 主承销商
-            self.ssbjr = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[17]/td[2]')[0].text)  # 上市保荐人
-            self.kjssws = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[18]/td[2]')[0].text)  # 会计师事务所
+            self.zcxs = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[16]/td[2]')[0].text, to_type=str)  # 主承销商
+            self.ssbjr = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[17]/td[2]')[0].text, to_type=str)  # 上市保荐人
+            self.kjssws = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[18]/td[2]')[0].text, to_type=str)  # 会计师事务所
 
     # 分红派息
     def __get_data_fhpx(self):
@@ -168,10 +177,10 @@ class Stock:
             for i, node in enumerate(nodes):
                 all_td = node.findall('td')
                 self.fhpx_years.append(all_td[1].text)
-                self.fhpx_sg.append(int(change_text(all_td[2].text, 0)))
-                self.fhpx_zz.append(int(change_text(all_td[3].text, 0)))
-                self.fhpx_px.append(float(change_text(all_td[4].text, 0)))
-                self.fhpx_cqcxr.append(change_text(all_td[6].text))
+                self.fhpx_sg.append(change_text(all_td[2].text, 0))
+                self.fhpx_zz.append(change_text(all_td[3].text, 0))
+                self.fhpx_px.append(change_text(all_td[4].text, 0))
+                self.fhpx_cqcxr.append(change_text(all_td[6].text, to_type=str))
 
     # 资产负债表
     def __get_data_zcfzb(self):
@@ -194,48 +203,50 @@ class Stock:
         for year in self.years:
             data = df[f'{year}-12-31']
             # 总股本
-            self.zcfzb_zgb.append(float(change_text(data[94], 0)))
+            self.zcfzb_zgb.append(change_text(data[94], 0))
             # 现金与约当现金
-            v_csv_2 = float(change_text(data[0], 0))
-            v_csv_3 = float(change_text(data[1], 0))
-            v_csv_4 = float(change_text(data[2], 0))
-            v_csv_5 = float(change_text(data[3], 0))
-            v_csv_6 = float(change_text(data[4], 0))
+            v_csv_2 = change_text(data[0], 0)
+            v_csv_3 = change_text(data[1], 0)
+            v_csv_4 = change_text(data[2], 0)
+            v_csv_5 = change_text(data[3], 0)
+            v_csv_6 = change_text(data[4], 0)
             self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
             # 应收账款
-            self.zcfzb_yszk.append(float(change_text(data[6], 0)))
+            self.zcfzb_yszk.append(change_text(data[6], 0))
             # 预付款项
-            self.zcfzb_yfkx.append(float(change_text(data[7], 0)))
+            self.zcfzb_yfkx.append(change_text(data[7], 0))
             # 存货
-            self.zcfzb_ch.append(float(change_text(data[19], 0)))
+            self.zcfzb_ch.append(change_text(data[19], 0))
             # 流动资产
-            self.zcfzb_ldzc.append(float(change_text(data[24], 0)))
+            self.zcfzb_ldzc.append(change_text(data[24], 0))
             # 应付账款
-            self.zcfzb_yfzk.append(float(change_text(data[59], 0)))
+            self.zcfzb_yfzk.append(change_text(data[59], 0))
             # 流动负债
-            self.zcfzb_ldfz.append(float(change_text(data[83], 0)))
+            self.zcfzb_ldfz.append(change_text(data[83], 0))
             # 长期负债
-            self.zcfzb_cqfz.append(float(change_text(data[92], 0)))
+            self.zcfzb_cqfz.append(change_text(data[92], 0))
             # 股东权益
-            self.zcfzb_gdqy.append(float(change_text(data[106], 0)))
+            self.zcfzb_gdqy.append(change_text(data[106], 0))
             # 总负债
-            self.zcfzb_zfz.append(float(change_text(data[93], 0)))
+            self.zcfzb_zfz.append(change_text(data[93], 0))
             # 固定资产
-            self.zcfzb_gdzc.append(float(change_text(data[36], 0)))
+            self.zcfzb_gdzc.append(change_text(data[36], 0))
             # 在建工程
-            self.zcfzb_zjgc.append(float(change_text(data[37], 0)))
+            self.zcfzb_zjgc.append(change_text(data[37], 0))
             # 工程物资
-            self.zcfzb_gcwz.append(float(change_text(data[38], 0)))
+            self.zcfzb_gcwz.append(change_text(data[38], 0))
             # 总资产
-            self.zcfzb_zzc.append(float(change_text(data[51], 0)))
+            self.zcfzb_zzc.append(change_text(data[51], 0))
 
     # 利润表
     def __get_data_lrb(self):
         df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
         self.lrb_jlr = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
+        self.lrb_yysr = []  # 营业收入  CSV_LINE:2  DF_INDEX:0
         for year in self.years:
             data = df[f'{year}-12-31']
-            self.lrb_jlr.append(float(data[40]))
+            self.lrb_jlr.append(change_text(data[40], 0))
+            self.lrb_yysr.append(change_text(data[0], 0))
 
     # 现金流量表
     def __get_data_xjllb(self):
