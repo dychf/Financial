@@ -52,9 +52,8 @@ def start_up():
 if __name__ == '__main__':
     while True:
         try:
-            result = start_up()
-            if result:
+            if start_up():
                 break
-        except:
-            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒')
+        except Exception as e:
+            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒 {e}')
             time.sleep(TASK_EXCEPTION_SLEEP_TIME)

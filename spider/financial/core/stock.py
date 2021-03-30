@@ -53,13 +53,13 @@ class Stock:
         # 分红派息
         # 分红率：(每十股分红金额 * 总股本) / 10 / 归属于母公司所有者的净利润
         fhl_sql = """
-            INSERT INTO dividend(code, year, sg, zz, px, cqcxr, fhl)
-            VALUES(%s, %s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE code = %s, year = %s, sg = %s, zz = %s, px = %s, cqcxr = %s, fhl = %s
+            INSERT INTO dividend(code, year, sg, zz, px, ggrq, cqcxr, fhl)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE code = %s, year = %s, sg = %s, zz = %s, px = %s, ggrq = %s, cqcxr = %s, fhl = %s
         """
         fhl_sql_params = []
         for i, year in enumerate(self.fhpx_years):
-            temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_cqcxr[i]]
+            temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_ggrq[i], self.fhpx_cqcxr[i]]
             if year in self.years:
                 index = self.years.index(year)
                 fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[index] / 10 / self.lrb_jlr_gm[index] * 100, 2)
@@ -233,6 +233,7 @@ class Stock:
         if response.status_code == 200:
             html = etree.HTML(response.text)
             nodes = html.cssselect('body > div.area > div:nth-child(5) > table > tr')
+            self.fhpx_ggrq = []  # 公告日期
             self.fhpx_years = []  # 分红派息年份
             self.fhpx_sg = []  # 送股
             self.fhpx_zz = []  # 转增
@@ -242,6 +243,7 @@ class Stock:
                 all_td = node.findall('td')
                 if len(all_td) == 1:  # 暂无数据
                     break
+                self.fhpx_ggrq.append(all_td[0].text)
                 self.fhpx_years.append(all_td[1].text)
                 self.fhpx_sg.append(change_text(all_td[2].text, 0))
                 self.fhpx_zz.append(change_text(all_td[3].text, 0))

@@ -18,10 +18,11 @@ CREATE TABLE `dividend` (
   `sg` tinyint(3) unsigned DEFAULT NULL COMMENT '送股',
   `zz` tinyint(3) unsigned DEFAULT NULL COMMENT '转增',
   `px` double DEFAULT NULL COMMENT '派息',
-  `cqcxr` date NOT NULL COMMENT '除权除息日',
+  `ggrq` date NOT NULL COMMENT '公告日期',
+  `cqcxr` date DEFAULT NULL COMMENT '除权除息日',
   `fhl` double DEFAULT NULL COMMENT '分红率',
-  PRIMARY KEY (`code`,`year`,`cqcxr`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分红派息';
+  PRIMARY KEY (`code`,`year`,`ggrq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='分红派息';
 
 DROP TABLE IF EXISTS `financial`;
 CREATE TABLE `financial` (
