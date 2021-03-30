@@ -3,7 +3,7 @@ import json
 import time
 
 from financial.core import Stock, Category
-from financial.config import LOCATION_FILE_PATH, TASK_INTERVAL_DAY
+from financial.config import LOCATION_FILE_PATH, TASK_INTERVAL_DAY, TASK_EXCEPTION_SLEEP_TIME
 from financial.utils import read_file, write_file
 
 def start_up():
@@ -40,12 +40,21 @@ def start_up():
             config['category'] = category.id
             config['stock'] = stock.code
             write_file(LOCATION_FILE_PATH, config)
-            print('DONE', category.name, stock.code, stock.zwjc)
+            print('DONE:', category.id, category.name, stock.code, stock.zwjc)
     
     config['done'] = True
     config['category'] = category.id
     config['stock'] = stock.code
     write_file(LOCATION_FILE_PATH, config)
 
+    return True
+
 if __name__ == '__main__':
-    start_up()
+    while True:
+        try:
+            result = start_up()
+            if result:
+                break
+        except:
+            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒')
+            time.sleep(TASK_EXCEPTION_SLEEP_TIME)

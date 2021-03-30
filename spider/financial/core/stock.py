@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import lxml
+import gc
 
 from lxml import etree
 from financial.config import URL_GSZL, URL_FHPX, URL_ZCFZB, URL_LRB, URL_XJLLB
@@ -223,6 +224,9 @@ class Stock:
             self.ssbjr = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[17]/td[2]')[0].text, to_type=str)  # 上市保荐人
             self.kjssws = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[18]/td[2]')[0].text, to_type=str)  # 会计师事务所
 
+            del response
+            gc.collect()
+
     # 分红派息
     def __get_data_fhpx(self):
         response = requests.get(self.__url_fhpx)
@@ -243,6 +247,9 @@ class Stock:
                 self.fhpx_zz.append(change_text(all_td[3].text, 0))
                 self.fhpx_px.append(change_text(all_td[4].text, 0))
                 self.fhpx_cqcxr.append(change_text(all_td[6].text, to_type=str))
+
+            del response
+            gc.collect()
 
     # 资产负债表
     def __get_data_zcfzb(self):
@@ -303,6 +310,9 @@ class Stock:
             # 总资产
             self.zcfzb_zzc.append(change_text(data[51], 0))
 
+        del df
+        gc.collect()
+
     # 利润表
     def __get_data_lrb(self):
         df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
@@ -325,6 +335,9 @@ class Stock:
             self.lrb_yylr.append(change_text(data[32], 0))
             self.lrb_mgyy.append(change_text(data[43], 0))
 
+        del df
+        gc.collect()
+
     # 现金流量表
     def __get_data_xjllb(self):
         df = pd.read_csv(self.__url_xjllb, encoding=self.encoding)
@@ -343,3 +356,6 @@ class Stock:
             self.xjllb_xjgl.append(change_text(data[47], 0))
             self.xjllb_zbzc.append(change_text(data[32], 0))
             self.xjllb_chjse.append(change_text(data[74], 0))
+
+        del df
+        gc.collect()
