@@ -43,13 +43,13 @@ def start_up():
         for stock_code in category.get_stock_codes():
             if category.id == config['category'] and config['stock'] is not None and stock_code <= config['stock']:
                 continue
-            print('EXEC:', category.id, category.name, stock_code)
+            print('EXEC:', category.id, category.name, stock_code, end='')
             stock = Stock(stock_code, category)
             stock.into_db()
             config['category'] = category.id
             config['stock'] = stock.code
             write_file(LOCATION_FILE_PATH, config)
-            print('DONE:', category.id, category.name, stock.code, stock.zwjc)
+            print('', stock.zwjc, 'DONE')
     
     config['done'] = True
     config['category'] = category.id
