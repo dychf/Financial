@@ -22,6 +22,9 @@ def start_up():
             return
         config = {'done': False, 'category': None, 'stock': None}
 
+    if config['category'] is None:
+        config['stock'] = None
+
     start_category_id = config['category']
     start_stock_id = config['stock']
 
