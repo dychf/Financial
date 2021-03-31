@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import traceback
 
 from financial.core import Stock, Category
 from financial.config import LOCATION_FILE_PATH, TASK_INTERVAL_DAY, TASK_EXCEPTION_SLEEP_TIME
@@ -13,6 +14,10 @@ def start_up():
         config = read_file(LOCATION_FILE_PATH)
     else:
         write_file(LOCATION_FILE_PATH, config)
+
+    # 如果到了五月一日，全部重跑（年报全部出了）
+    if time.strftime('%m-%d') == '05-01':
+        confid = {'done': False, 'category': None, 'stock': None}
 
     if config['done']:  # 如果上次任务完成了
         # 检查文件最后一次修改时间是否大于间隔天数，如果是则重新刷全盘数据
@@ -38,6 +43,7 @@ def start_up():
         for stock_code in category.get_stock_codes():
             if category.id == config['category'] and config['stock'] is not None and stock_code <= config['stock']:
                 continue
+            print('EXEC:', category.id, category.name, stock_code)
             stock = Stock(stock_code, category)
             stock.into_db()
             config['category'] = category.id
@@ -58,5 +64,6 @@ if __name__ == '__main__':
             if start_up():
                 break
         except Exception as e:
-            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒 {e}')
+            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒')
+            traceback.print_exc()
             time.sleep(TASK_EXCEPTION_SLEEP_TIME)
