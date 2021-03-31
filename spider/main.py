@@ -24,7 +24,7 @@ def start_up():
         file_stat = os.stat(LOCATION_FILE_PATH)
         now = int(time.time())
         if (now - file_stat.st_mtime) < TASK_INTERVAL_DAY * 24 * 3600:
-            return
+            return True
         config = {'done': False, 'category': None, 'stock': None}
 
     if config['category'] is None:
