@@ -125,9 +125,6 @@ class Stock:
             WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
-        self.years = list(set(self.zcfzb_years) | set(self.lrb_years) | set(self.xjllb_years))
-        self.years.sort()
-        years_len = len(self.years)
 
         def calc_xjllydbl(year: str):  # 计算：现金流量允当比率
             # 没当年数据
@@ -155,75 +152,111 @@ class Stock:
         def calc_xjyydxj(year: str):  # 计算：现金与约当现金
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
         
         def calc_yszk(year: str):  # 计算：应收账款
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_yszk[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_yszk[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_ch(year: str):  # 计算：存货
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_ch[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_ch[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_ldzc(year: str):  # 计算：流动资产
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_ldzc[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_ldzc[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_yfzk(year: str):  # 计算：应付账款
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_yfzk[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_yfzk[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_ldfz(year: str):  # 计算：流动负债
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_ldfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_ldfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_cqfz(year: str):  # 计算：长期负债
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_cqfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_cqfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_gdqy(year: str):  # 计算：股东权益
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_gdqy[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_gdqy[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_fzzzcbl(year: str):  # 计算：负债占资产比率
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_zfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_zfz[i] / self.zcfzb_zzc[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         # 计算：长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
         def calc_cqzjzbdcbl(year: str):
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_ldbl(year: str):  # 计算：流动比率：流动资产 / 流动负债
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_sdbl(year: str):  # 计算：速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
             if year not in self.zcfzb_years:
                 return None
-            i = self.zcfzb_years.index(year)
-            return round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2)
+            try:
+                i = self.zcfzb_years.index(year)
+                return round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2)
+            except(ValueError, ZeroDivisionError):
+                return None
 
         def calc_yszkzzl(year):  # 计算：应收账款周转率(次)：营业收入 / 应收账款
             if year not in self.lrb_years or year not in self.zcfzb_years:
@@ -232,7 +265,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / self.zcfzb_yszk[zcfzb_i], 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_pjsxrs(year):  # 计算：平均收现日数：360 / 应收账款周转率(次)
@@ -242,7 +275,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(360 / round(self.lrb_yysr[lrb_i] / self.zcfzb_yszk[zcfzb_i], 2), 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_chzzl(year):  # 计算：存货周转率(次)：营业成本 / 存货
@@ -252,7 +285,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yycb[lrb_i] / self.zcfzb_ch[zcfzb_i], 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_pjxhrs(year):  # 计算：平均销货日数(在库天数)：360 / 存货周转率(次)
@@ -262,7 +295,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(360 / round(self.lrb_yycb[lrb_i] / self.zcfzb_ch[zcfzb_i], 2), 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
@@ -273,7 +306,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / (self.zcfzb_gdzc[zcfzb_i] + self.zcfzb_zjgc[zcfzb_i] + self.zcfzb_gcwz[zcfzb_i]), 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_zzczzl(year):  # 总资产周转率(次)：营业收入 / 总资产
@@ -283,7 +316,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / self.zcfzb_zzc[zcfzb_i], 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_roe(year):  # 股东权益报酬率(ROE)
@@ -293,7 +326,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_jlr_gm[lrb_i] / self.zcfzb_gdqy_gm[zcfzb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_roa(year):  # 总资产报酬率(ROA)
@@ -303,7 +336,7 @@ class Stock:
                 lrb_i = self.lrb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_jlr_gm[lrb_i] / self.zcfzb_zzc[zcfzb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_yymll(year):  # 营业毛利率：(营业收入合计 - 营业成本合计) / 营业收入合计
@@ -312,7 +345,7 @@ class Stock:
             try:
                 lrb_i = self.lrb_years.index(year)
                 return round((self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_yylyl(year):  # # 营业利益率：营业利润 / 营业收入
@@ -321,7 +354,7 @@ class Stock:
             try:
                 lrb_i = self.lrb_years.index(year)
                 return round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_jyaqbjl(year):  # 经营安全边际率：营业利益率 / 营业毛利率
@@ -330,7 +363,7 @@ class Stock:
             try:
                 lrb_i = self.lrb_years.index(year)
                 return round(round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2) / round((self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2) * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_jll(year):  # 净利率：净利润 / 营业收入
@@ -339,20 +372,26 @@ class Stock:
             try:
                 lrb_i = self.lrb_years.index(year)
                 return round(self.lrb_jlr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         def calc_mgyy(year):  # 每股盈余
             if year not in self.lrb_years:
                 return None
-            lrb_i = self.lrb_years.index(year)
-            return self.lrb_mgyy[lrb_i]
+            try:
+                lrb_i = self.lrb_years.index(year)
+                return self.lrb_mgyy[lrb_i]
+            except ValueError:
+                return None
 
         def calc_shjl(year):  # 税后净利
             if year not in self.lrb_years:
                 return None
-            lrb_i = self.lrb_years.index(year)
-            return self.lrb_jlr[lrb_i]
+            try:
+                lrb_i = self.lrb_years.index(year)
+                return self.lrb_jlr[lrb_i]
+            except ValueError:
+                return None
 
         def calc_xjllbl(year):  # 现金流量比率：营业活动现金流量 / 流动负债
             if year not in self.xjllb_years or year not in self.zcfzb_years:
@@ -361,7 +400,7 @@ class Stock:
                 xjllb_i = self.xjllb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.xjllb_yyhdxjll[xjllb_i] / self.zcfzb_ldfz[zcfzb_i] * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
 
         # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
@@ -372,8 +411,11 @@ class Stock:
                 xjllb_i = self.xjllb_years.index(year)
                 zcfzb_i = self.zcfzb_years.index(year)
                 return round((self.xjllb_yyhdxjll[xjllb_i] - self.xjllb_xjgl[xjllb_i]) / (self.zcfzb_zzc[zcfzb_i] - self.zcfzb_ldfz[zcfzb_i]) * 100, 2)
-            except:
+            except(ValueError, ZeroDivisionError):
                 return None
+
+        self.years = list(set(self.zcfzb_years) | set(self.lrb_years) | set(self.xjllb_years))
+        self.years.sort()
 
         for i, year in enumerate(self.years):
             # 现金流量允当比率
