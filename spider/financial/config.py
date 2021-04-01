@@ -20,6 +20,13 @@ DB_CONFIG = {
     'charset': 'utf8'
 }
 
+# 请求头
+HTTP_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+    'Host': 'quotes.money.163.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+}
+
 # 行业分类
 URL_CATEGORY = 'http://quotes.money.163.com/old'
 CATEGORY_STOCK_PAGE_SIZE = 50

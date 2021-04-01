@@ -1,13 +1,24 @@
 import uuid
 import json
 import pymysql
+import requests
+import pandas as pd
 
+from io import StringIO
 from pypinyin import lazy_pinyin, Style
-from financial.config import DB_CONFIG
+from financial.config import DB_CONFIG, HTTP_HEADERS
 
 # 生成UUID
 def generate_uuid() -> str:
     return str(uuid.uuid1()).replace('-', '')
+
+# 读取网络CSV
+def read_csv(url: str, encoding='GB18030') -> pd.DataFrame:
+    response = requests.get(url, headers=HTTP_HEADERS)
+    if response.status_code == 200:
+        data = StringIO(response.text)
+        return pd.read_csv(data, encoding=encoding)
+    return None
 
 # 拼音首字母
 def pinyin(string: str) -> str:

@@ -64,6 +64,6 @@ if __name__ == '__main__':
             if start_up():
                 break
         except Exception as e:
-            print(f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒')
+            print('', f'出错了，休息{TASK_EXCEPTION_SLEEP_TIME}秒')
             traceback.print_exc()
             time.sleep(TASK_EXCEPTION_SLEEP_TIME)
