@@ -1,12 +1,36 @@
 {
     "pages": [
-        "pages/index/index"
+        "pages/index/index",
+        "pages/filter/filter",
+        "pages/compare/compare",
+        "pages/about/about"
     ],
     "window": {
         "backgroundTextStyle": "light",
-        "navigationBarBackgroundColor": "#3367D6",
+        "navigationBarBackgroundColor": "#2882E9",
         "navigationBarTitleText": "图说财报",
         "navigationBarTextStyle": "white"
+    },
+    "tabBar": {
+        "color": "#575859",
+        "selectedColor": "#2882E9",
+        "list": [
+            {
+                "text": "首页",
+                "pagePath": "pages/index/index"
+            },
+            {
+                "text": "选股",
+                "pagePath": "pages/filter/filter"
+            },
+            {
+                "text": "对比",
+                "pagePath": "pages/compare/compare"
+            },{
+                "text": "关于",
+                "pagePath": "pages/about/about"
+            }
+        ]
     },
     "style": "v2",
     "sitemapLocation": "sitemap.json"
