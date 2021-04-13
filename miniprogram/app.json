@@ -1,6 +1,6 @@
 {
     "pages": [
-        "pages/index/index",
+        "pages/search/search",
         "pages/filter/filter",
         "pages/compare/compare",
         "pages/about/about"
@@ -16,17 +16,25 @@
         "selectedColor": "#2882E9",
         "list": [
             {
-                "text": "首页",
-                "pagePath": "pages/index/index"
+                "iconPath": "images/tab_search.png",
+                "selectedIconPath": "images/tab_search_select.png",
+                "text": "搜索",
+                "pagePath": "pages/search/search"
             },
             {
+                "iconPath": "images/tab_filter.png",
+                "selectedIconPath": "images/tab_filter_select.png",
                 "text": "选股",
                 "pagePath": "pages/filter/filter"
             },
             {
+                "iconPath": "images/tab_compare.png",
+                "selectedIconPath": "images/tab_compare_select.png",
                 "text": "对比",
                 "pagePath": "pages/compare/compare"
             },{
+                "iconPath": "images/tab_about.png",
+                "selectedIconPath": "images/tab_about_select.png",
                 "text": "关于",
                 "pagePath": "pages/about/about"
             }
