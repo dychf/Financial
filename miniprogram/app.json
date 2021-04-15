@@ -3,6 +3,7 @@
         "pages/search/search",
         "pages/filter/filter",
         "pages/compare/compare",
+        "pages/like/like",
         "pages/about/about"
     ],
     "window": {
@@ -32,7 +33,14 @@
                 "selectedIconPath": "images/tab_compare_select.png",
                 "text": "对比",
                 "pagePath": "pages/compare/compare"
-            },{
+            },
+            {
+                "iconPath": "images/tab_like.png",
+                "selectedIconPath": "images/tab_like_select.png",
+                "text": "自选",
+                "pagePath": "pages/like/like"
+            },
+            {
                 "iconPath": "images/tab_about.png",
                 "selectedIconPath": "images/tab_about_select.png",
                 "text": "关于",
