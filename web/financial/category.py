@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from financial.utils import query_data
+from utils import query_data
 
 category = Blueprint('category', __name__, url_prefix='/category')
 
