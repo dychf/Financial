@@ -6,9 +6,11 @@ stock = Blueprint('stock', __name__, url_prefix='/stock')
 @stock.route('/suggest', methods=['GET'])
 def suggest():
     result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
+
     keyword = request.args.get('keyword')
     if keyword is None:
         return jsonify(result)
+
     query_data_sql = """
         SELECT code, name, category, area
         FROM (
