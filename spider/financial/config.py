@@ -42,3 +42,10 @@ URL_FHPX = 'http://quotes.money.163.com/f10/fhpg_{stock_code}.html'
 URL_ZCFZB = 'http://quotes.money.163.com/service/zcfzb_{stock_code}.html?type=year'  # 资产负债表
 URL_LRB = 'http://quotes.money.163.com/service/lrb_{stock_code}.html?type=year'  # 利润表
 URL_XJLLB = 'http://quotes.money.163.com/service/xjllb_{stock_code}.html?type=year'  # 现金流量表
+
+# 流行指数：上证50、沪深300、中证500、红利指数、科创50
+URL_INDEX_SZ50 = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000016cons.xls'
+URL_INDEX_HS300 = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000300cons.xls'
+URL_INDEX_ZZ500 = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000905cons.xls'
+URL_INDEX_HLZS = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000015cons.xls'
+URL_INDEX_KC50 = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000688cons.xls'

@@ -5,6 +5,7 @@ import gc
 
 from lxml import etree
 from financial.config import URL_GSZL, URL_FHPX, URL_ZCFZB, URL_LRB, URL_XJLLB
+from financial.config import URL_INDEX_SZ50, URL_INDEX_HS300, URL_INDEX_ZZ500, URL_INDEX_HLZS, URL_INDEX_KC50
 from financial.utils import pinyin, change_text, replace_db
 
 class Stock:
@@ -19,6 +20,11 @@ class Stock:
         self.__url_fhpx = URL_FHPX.format(stock_code=self.code)
         self.encoding = 'GB18030'
         self.__get_data()
+        self.is_sz50 = 1 if code in Stock.SZ50 else 0
+        self.is_hs300 = 1 if code in Stock.HS300 else 0
+        self.is_zz500 = 1 if code in Stock.ZZ500 else 0
+        self.is_hlzs = 1 if code in Stock.HLZS else 0
+        self.is_kc50 = 1 if code in Stock.KC50 else 0
 
     # 更新数据库
     def into_db(self):
@@ -27,13 +33,15 @@ class Stock:
             REPLACE INTO stock(
                 code, zwjc, zwjc_py, gsqc, dy, zzxs, gswz, zyyw, jyfw,
                 clrq, ssrq, sssc, zcxs, ssbjr, kjssws,
+                sz50, hs300, zz500, hlzs, kc50,
                 category_id
             )
             VALUES({params})
-        """.format(params=','.join(['%s' for i in range(16)]))
+        """.format(params=','.join(['%s' for i in range(21)]))
         gszl_sql_params = [
             self.code, self.zwjc, self.zwjc_py, self.gsqc, self.dy, self.zzxs, self.gswz, self.zyyw, self.jyfw,
             self.clrq, self.ssrq, self.sssc, self.zcxs, self.ssbjr, self.kjssws,
+            self.is_sz50, self.is_hs300, self.is_zz500, self.is_hlzs, self.is_kc50,
             self.category.id
         ]
         replace_db(gszl_sql, gszl_sql_params)
@@ -642,3 +650,23 @@ class Stock:
 
         del df
         gc.collect()
+
+    @staticmethod
+    def get_stocks(type):
+        urls = {
+            'SZ50': URL_INDEX_SZ50,
+            'HS300': URL_INDEX_HS300,
+            'ZZ500': URL_INDEX_ZZ500,
+            'HLZS': URL_INDEX_HLZS,
+            'KC50': URL_INDEX_KC50,
+        }
+        if type not in urls:
+            return []
+        df = pd.read_excel(urls[type])
+        return df['成分券代码Constituent Code'].tolist()
+
+    SZ50 = get_stocks.__func__('SZ50')
+    HS300 = get_stocks.__func__('HS300')
+    ZZ500 = get_stocks.__func__('ZZ500')
+    HLZS = get_stocks.__func__('HLZS')
+    KC50 = get_stocks.__func__('KC50')
