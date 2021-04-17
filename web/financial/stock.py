@@ -12,9 +12,12 @@ def suggest():
         return jsonify(result)
 
     query_data_sql = """
-        SELECT code, name, category, area
+        SELECT code, name, category, area, sz50, hs300, zz500, hlzs, kc50
         FROM (
-            SELECT code, zwjc AS name, dy AS area, category_id FROM stock
+            SELECT
+                code, zwjc AS name, dy AS area, category_id,
+                sz50, hs300, zz500, hlzs, kc50
+            FROM stock
             WHERE code LIKE %s OR zwjc LIKE %s OR zwjc_py LIKE %s
         ) AS t1
         INNER JOIN (
@@ -26,5 +29,23 @@ def suggest():
         LIMIT 10
     """
     query_data_params = [keyword + '%'] * 3
-    result['data'] = query_data(query_data_sql, query_data_params)
+    for item in query_data(query_data_sql, query_data_params):
+        index = []
+        if item['sz50']:
+            index.append('上证50')
+        if item['hs300']:
+            index.append('沪深300')
+        if item['zz500']:
+            index.append('中证500')
+        if item['hlzs']:
+            index.append('红利指数')
+        if item['kc50']:
+            index.append('科创50')
+        result['data'].append({
+            'code': item['code'],
+            'name': item['name'],
+            'category': item['category'],
+            'area': item['area'],
+            'index': index
+        })
     return result
