@@ -662,7 +662,7 @@ class Stock:
         }
         if type not in urls:
             return []
-        df = pd.read_excel(urls[type])
+        df = pd.read_excel(urls[type], dtype={'成分券代码Constituent Code': str})
         return df['成分券代码Constituent Code'].tolist()
 
     SZ50 = get_stocks.__func__('SZ50')
