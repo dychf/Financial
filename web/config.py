@@ -9,7 +9,8 @@ DB_CONFIG = {
     'charset': 'utf8'
 }
 
-ERROR_CODE_OK = '200000'
+ERROR_CODE_OK = '200'
+ERROR_CODE_ERROR = '500'
 
 HTTP_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
