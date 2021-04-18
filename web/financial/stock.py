@@ -1,5 +1,7 @@
+import requests
+
 from flask import Blueprint, request, jsonify, current_app
-from utils import query_data
+from utils import query_data, parse_jsonp
 
 stock = Blueprint('stock', __name__, url_prefix='/stock')
 
@@ -49,3 +51,53 @@ def suggest():
             'index': index
         })
     return result
+
+
+@stock.route('/index', methods=['GET'])
+def index():
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
+
+    url = current_app.config['URL_INDEX']
+    response = requests.get(url, headers=current_app.config['HTTP_HEADERS'])
+
+    if response.status_code != 200:
+        return jsonify(result)
+
+    index_data = parse_jsonp(response.text)
+    if index_data['data'] is None:
+        return jsonify(result)
+
+    codes = [
+        '000001', '399001', '399006',  # 上证指数、深证成指、创业板指
+        '000016', '000300', '000905',  # 上证50、沪深300、中证500
+        '000688', '399005', '399008'   # 科创50、中小100、中小300
+    ]
+    data = [
+        {'code': code, 'name': '?', 'value': '?', 'percent': '?', 'updown': '?'}
+        for code in codes
+    ]
+    for k, v in index_data['data']['diff'].items():
+        code = v['f12']
+        if code in codes:
+            data_index = codes.index(code)
+            data[data_index]['name'] = v['f14']
+            data[data_index]['value'] = v['f2']
+            data[data_index]['percent'] = v['f3']
+            data[data_index]['updown'] = v['f4']
+
+    result['data'] = data
+    return jsonify(result)
+
+
+@stock.route('/data', methods=['GET'])
+def data():
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
+
+    code = request.args.get('code')
+    if code is None:
+        return jsonify(result)
+
+    query_data_sql = 'SELECT * FROM financial WHERE code = %s ORDER BY year DESC LIMIT 5'
+    result['data'] = query_data(query_data_sql, [code])
+    result['data'].reverse()
+    return jsonify(result)
