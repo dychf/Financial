@@ -1,8 +1,15 @@
 import re
 import json
 import pymysql
+import hashlib
 
 from config import DB_CONFIG
+
+# SHA1签名
+def sha1(text: str) -> str:
+    sha1 = hashlib.sha1(text.encode('utf-8'))
+    return sha1.hexdigest()
+
 
 # 解析JSONP字符串
 def parse_jsonp(text):

@@ -1,5 +1,7 @@
 DEBUG = True
 
+SECRET = 'zpJIL73894'
+
 DB_CONFIG = {
     'host': '127.0.0.1',
     'port': 3306,
@@ -10,6 +12,7 @@ DB_CONFIG = {
 }
 
 ERROR_CODE_OK = '200'
+ERROR_CODE_NO_AUTH = '400'
 ERROR_CODE_ERROR = '500'
 
 HTTP_HEADERS = {
