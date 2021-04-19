@@ -98,13 +98,23 @@ def index():
 
 @stock.route('/data', methods=['GET'])
 def data():
-    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': None}
 
     code = request.args.get('code')
     if code is None:
         return jsonify(result)
 
     query_data_sql = 'SELECT * FROM financial WHERE code = %s ORDER BY year DESC LIMIT 5'
-    result['data'] = query_data(query_data_sql, [code])
-    result['data'].reverse()
+    data = query_data(query_data_sql, [code])
+    if len(data) == 0:
+        return jsonify(result)
+
+    data.reverse()
+    result['data'] = {}
+    for k, v in data[0].items():
+        result['data'][k] = []
+    for obj in data:
+        for k, v in obj.items():
+            result['data'][k].append(v)
+    del result['data']['code']
     return jsonify(result)
