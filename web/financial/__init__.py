@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, request, jsonify
 from financial.category import category
 from financial.stock import stock
@@ -22,6 +24,14 @@ def check_signature():
             'code': app.config['ERROR_CODE_NO_AUTH'],
             'message': '无权访问该接口'
         })
+    
+    now_timestamp = int(time.time())
+    if not timestamp.isdigit() or abs(int(timestamp) - now_timestamp) > 30:
+        return jsonify({
+            'code': app.config['ERROR_CODE_NO_AUTH'],
+            'message': '无权访问该接口'
+        })
+
 
     args = [f'secret={secret}']
     for key, value in request.args.items():
