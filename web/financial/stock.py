@@ -33,15 +33,15 @@ def suggest():
     query_data_params = [keyword + '%'] * 3
     for item in query_data(query_data_sql, query_data_params):
         index = []
-        if item['sz50']:
+        if item['sz50'] == 1:
             index.append('上证50')
-        if item['hs300']:
+        if item['hs300'] == 1:
             index.append('沪深300')
-        if item['zz500']:
+        if item['zz500'] == 1:
             index.append('中证500')
-        if item['hlzs']:
+        if item['hlzs'] == 1:
             index.append('红利指数')
-        if item['kc50']:
+        if item['kc50'] == 1:
             index.append('科创50')
         result['data'].append({
             'code': item['code'],
@@ -94,6 +94,56 @@ def index():
 
     result['data'] = data
     return jsonify(result)
+
+
+@stock.route('/info', methods=['GET'])
+def info():
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': None}
+
+    code = request.args.get('code')
+    if code is None:
+        return jsonify(result)
+
+    query_data_sql = """
+        SELECT code, zwjc, dy, gsqc, zzxs, gswz, zyyw, jyfw, clrq, ssrq, level1, level2, sz50, hs300, zz500, hlzs, kc50
+        FROM (
+            SELECT
+                code, zwjc, dy, gsqc, zzxs, gswz, zyyw, jyfw, clrq, ssrq,
+                category_id,
+                sz50, hs300, zz500, hlzs, kc50
+            FROM stock
+            WHERE code = %s
+        ) AS t1
+        INNER JOIN (
+            SELECT c1.id AS id, c1.name AS level1, c2.name AS level2
+            FROM category AS c1 INNER JOIN category AS c2 ON c1.parent_id = c2.id
+        ) AS t2
+        ON t1.category_id = t2.id
+    """
+    data = query_data(query_data_sql, [code], fetchone=True)
+
+    index = []
+    if data['sz50'] == 1:
+        index.append('上证50')
+    if data['hs300'] == 1:
+        index.append('沪深300')
+    if data['zz500'] == 1:
+        index.append('中证500')
+    if data['hlzs'] == 1:
+        index.append('红利指数')
+    if data['kc50'] == 1:
+        index.append('科创50')
+
+    data['index'] = index
+    del data['sz50']
+    del data['hs300']
+    del data['zz500']
+    del data['hlzs']
+    del data['kc50']
+    data['clrq'] = data['clrq'].strftime('%Y-%m-%d') if data['clrq'] is not None else '-'
+    data['ssrq'] = data['ssrq'].strftime('%Y-%m-%d') if data['ssrq'] is not None else '-'
+    result['data'] = data
+    return result
 
 
 @stock.route('/data', methods=['GET'])
