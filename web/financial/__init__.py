@@ -14,6 +14,9 @@ app.register_blueprint(stock)
 
 @app.before_request
 def check_signature():
+    if app.config['DEBUG']:
+        return None
+
     secret = app.config['SECRET']
     signature = request.args.get('signature')
     timestamp = request.args.get('timestamp')
