@@ -55,18 +55,6 @@ def suggest():
 
 @stock.route('/index', methods=['GET'])
 def index():
-    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
-
-    url = current_app.config['URL_INDEX']
-    response = requests.get(url, headers=current_app.config['HTTP_HEADERS'])
-
-    if response.status_code != 200:
-        return jsonify(result)
-
-    index_data = parse_jsonp(response.text)
-    if index_data['data'] is None:
-        return jsonify(result)
-
     codes = [
         '000001', '399001', '399006',  # 上证指数、深证成指、创业板指
         '000016', '000300', '000905',  # 上证50、沪深300、中证500
@@ -76,6 +64,25 @@ def index():
         {'code': code, 'name': '?', 'value': '?', 'percent': '?', 'updown': '?'}
         for code in codes
     ]
+
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': data}
+
+    headers = {
+        'Accept': request.headers.get('Accept', current_app.config['HTTP_HEADERS']['Accept']),
+        'Host': current_app.config['HTTP_HEADERS']['Host'],
+        'User-Agent': request.headers.get('User-Agent', current_app.config['HTTP_HEADERS']['User-Agent'])
+    }
+
+    url = current_app.config['URL_INDEX']
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        return jsonify(result)
+
+    index_data = parse_jsonp(response.text)
+    if index_data['data'] is None:
+        return jsonify(result)
+
     for k, v in index_data['data']['diff'].items():
         code = v['f12']
         if code in codes:
