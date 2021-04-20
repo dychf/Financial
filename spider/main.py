@@ -17,7 +17,7 @@ def start_up():
 
     # 如果到了五月一日，全部重跑（年报全部出了）
     if time.strftime('%m-%d') == '05-01':
-        confid = {'done': False, 'category': None, 'stock': None}
+        config = {'done': False, 'category': None, 'stock': None}
 
     if config['done']:  # 如果上次任务完成了
         # 检查文件最后一次修改时间是否大于间隔天数，如果是则重新刷全盘数据

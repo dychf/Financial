@@ -35,7 +35,6 @@ def check_signature():
             'message': '无权访问该接口'
         })
 
-
     args = [f'secret={secret}']
     for key, value in request.args.items():
         if key != 'signature':

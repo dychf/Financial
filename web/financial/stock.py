@@ -10,15 +10,15 @@ def suggest():
     result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
 
     keyword = request.args.get('keyword')
-    if keyword is None:
+    if keyword is None or keyword.strip() == '':
         return jsonify(result)
 
     query_data_sql = """
-        SELECT code, name, category, area, sz50, hs300, zz500, hlzs, kc50
+        SELECT code, name, category, area, sssc, sz50, hs300, zz500, hlzs, kc50
         FROM (
             SELECT
                 code, zwjc AS name, dy AS area, category_id,
-                sz50, hs300, zz500, hlzs, kc50
+                sssc, sz50, hs300, zz500, hlzs, kc50
             FROM stock
             WHERE code LIKE %s OR zwjc LIKE %s OR zwjc_py LIKE %s
         ) AS t1
@@ -43,11 +43,19 @@ def suggest():
             index.append('红利指数')
         if item['kc50'] == 1:
             index.append('科创50')
+
+        market = '-'
+        if item['sssc'] == '上海':
+            market = 'SH'
+        if item['sssc'] == '深圳':
+            market = 'SZ'
+
         result['data'].append({
             'code': item['code'],
             'name': item['name'],
             'category': item['category'],
             'area': item['area'],
+            'market': market,
             'index': index
         })
     return result
