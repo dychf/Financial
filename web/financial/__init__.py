@@ -17,23 +17,27 @@ def check_signature():
     if app.config['DEBUG']:
         return None
 
+    # 跳过检查权限的URL
+    skip_check_auth_urls = ['/favicon.ico']
+    if request.path in skip_check_auth_urls:
+        return None
+
     secret = app.config['SECRET']
     signature = request.args.get('signature')
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
 
+    no_auth_response = jsonify({
+        'code': app.config['ERROR_CODE_NO_AUTH'],
+        'message': '无权访问该接口'
+    })
+
     if nonce is None or nonce == '' or timestamp is None or timestamp == '' or signature is None or signature == '':
-        return jsonify({
-            'code': app.config['ERROR_CODE_NO_AUTH'],
-            'message': '无权访问该接口'
-        })
-    
+        return no_auth_response
+
     now_timestamp = int(time.time())
     if not timestamp.isdigit() or abs(int(timestamp) - now_timestamp) > 30:
-        return jsonify({
-            'code': app.config['ERROR_CODE_NO_AUTH'],
-            'message': '无权访问该接口'
-        })
+        return no_auth_response
 
     args = [f'secret={secret}']
     for key, value in request.args.items():
@@ -42,10 +46,7 @@ def check_signature():
     args.sort()
 
     if sha1('&'.join(args)) != signature:
-        return jsonify({
-            'code': app.config['ERROR_CODE_NO_AUTH'],
-            'message': '无权访问该接口'
-        })
+        return no_auth_response
 
 
 @app.errorhandler(500)
