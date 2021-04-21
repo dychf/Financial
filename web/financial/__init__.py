@@ -18,9 +18,12 @@ def check_signature():
         return None
 
     # 跳过检查权限的URL
-    skip_check_auth_urls = ['/favicon.ico']
-    if request.path in skip_check_auth_urls:
-        return None
+    skip_check_auth_urls = [
+        '/favicon.ico'
+    ]
+    for url in skip_check_auth_urls:
+        if request.path.startswith(url):
+            return None
 
     secret = app.config['SECRET']
     signature = request.args.get('signature')
