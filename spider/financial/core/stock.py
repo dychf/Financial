@@ -56,12 +56,12 @@ class Stock:
         fhl_sql_params = []
         for i, year in enumerate(self.fhpx_years):
             temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_ggrq[i], self.fhpx_cqcxr[i]]
-            if f'{year}-12-31' not in self.zcfzb_dates or f'{year}-12-31' not in self.lrb_dates:
+            if year not in self.zcfzb_years or year not in self.lrb_years:
                 temp.append(None)
             else:
                 try:
-                    zcfzb_zgb_index = self.zcfzb_dates.index(f'{year}-12-31')
-                    lrb_jlr_gm_index = self.lrb_dates.index(f'{year}-12-31')
+                    zcfzb_zgb_index = self.zcfzb_years.index(year)
+                    lrb_jlr_gm_index = self.lrb_years.index(year)
                     fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[zcfzb_zgb_index] / 10 / self.lrb_jlr_gm[lrb_jlr_gm_index] * 100, 2)
                     temp.append(fhl)
                 except:
@@ -69,25 +69,25 @@ class Stock:
             fhl_sql_params.append(temp * 2)
         replace_db(fhl_sql, fhl_sql_params, is_many=True, is_special_sql=True)
 
-        self.dates = list(set(self.zcfzb_dates) | set(self.lrb_dates) | set(self.xjllb_dates))
-        self.dates.sort()
+        self.years = list(set(self.zcfzb_years) | set(self.lrb_years) | set(self.xjllb_years))
+        self.years.sort()
 
-        # 初始化
+        # 初始信息
         init_sql = """
-            INSERT INTO financial(code, date) VALUES(%s, %s)
-            ON DUPLICATE KEY UPDATE code = %s, date = %s
+            INSERT INTO financial(code, year) VALUES(%s, %s)
+            ON DUPLICATE KEY UPDATE code = %s, year = %s
         """
-        init_sql_params = [[self.code, date] * 2 for date in self.dates]
+        init_sql_params = [[self.code, year] * 2 for i, year in enumerate(self.years)]
         replace_db(init_sql, init_sql_params, is_many=True, is_special_sql=True)
 
         # 营业活动现金流量、投资活动现金流量、筹资活动现金流量
         xjllb_sql = """
             UPDATE financial SET yyhdxjll = %s, tzhdxjll = %s, czhdxjll = %s
-            WHERE code = %s AND date = %s
+            WHERE code = %s AND year = %s
         """
         xjllb_sql_params = [
-            [self.xjllb_yyhdxjll[i], self.xjllb_tzhdxjll[i], self.xjllb_czhdxjll[i], self.code, date]
-            for i, date in enumerate(self.xjllb_dates)
+            [self.xjllb_yyhdxjll[i], self.xjllb_tzhdxjll[i], self.xjllb_czhdxjll[i], self.code, year]
+            for i, year in enumerate(self.xjllb_years)
         ]
         replace_db(xjllb_sql, xjllb_sql_params, is_many=True)
 
@@ -140,349 +140,343 @@ class Stock:
                 xjllbl = %s,
                 xjllydbl = %s,
                 xjztzbl = %s
-            WHERE code = %s AND date = %s
+            WHERE code = %s AND year = %s
         """
         zcfzbl_sql_params = []
 
-        def calc_xjllydbl(date: str):  # 计算：现金流量允当比率
+        def calc_xjllydbl(year: str):  # 计算：现金流量允当比率
             # 没当年数据
-            if date not in self.xjllb_dates:
+            if year not in self.xjllb_years:
                 return None
 
             # 截取五年年份
-            end_dates = [date for date in self.xjllb_dates if date.endswith('-12-31')]
-            index = end_dates.index(date)
-            dates = end_dates[index: index + 5]
+            index = self.xjllb_years.index(year)
+            years = self.xjllb_years[index: index + 5]
 
             # 未满五年，或者五年之间差数据
-            if len(dates) < 5:
-                return None
-            end_year = int(date[:4])
-            start_year = end_year - 4
-            if start_year != int(dates[-1][:4]):
+            year = int(year)
+            end_year = year - 4
+            if end_year != int(years[-1]):
                 return None
 
             # 近5年营业活动现金流量 / 近5年(资本支出 + 存货增加额 + 现金股利)
             # 存货增加额 = -(存货减少额)  注：存货减少额中负数表示增加
-            xjllb_yyhdxjll = [self.xjllb_yyhdxjll[self.xjllb_dates.index(date)] for date in dates]
-            xjllb_zbzc = [self.xjllb_zbzc[self.xjllb_dates.index(date)] for date in dates]
-            xjllb_chjse = [self.xjllb_chjse[self.xjllb_dates.index(date)] for date in dates]
-            xjllb_xjgl = [self.xjllb_xjgl[self.xjllb_dates.index(date)] for date in dates]
-            return sum(xjllb_yyhdxjll) / (sum(xjllb_zbzc) - sum(xjllb_chjse) + sum(xjllb_xjgl))
+            xjllb_yyhdxjll = self.xjllb_yyhdxjll[index: index + 5]
+            xjllb_zbzc = self.xjllb_zbzc[index: index + 5]
+            xjllb_chjse = self.xjllb_chjse[index: index + 5]
+            xjllb_xjgl = self.xjllb_xjgl[index: index + 5]
+            return  sum(xjllb_yyhdxjll) / (sum(xjllb_zbzc) - sum(xjllb_chjse) + sum(xjllb_xjgl))
 
-        def calc_xjyydxj(date: str):  # 计算：现金与约当现金
-            if date not in self.zcfzb_dates:
+        def calc_xjyydxj(year: str):  # 计算：现金与约当现金
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
         
-        def calc_yszk(date: str):  # 计算：应收账款
-            if date not in self.zcfzb_dates:
+        def calc_yszk(year: str):  # 计算：应收账款
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_yszk[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_ch(date: str):  # 计算：存货
-            if date not in self.zcfzb_dates:
+        def calc_ch(year: str):  # 计算：存货
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_ch[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_ldzc(date: str):  # 计算：流动资产
-            if date not in self.zcfzb_dates:
+        def calc_ldzc(year: str):  # 计算：流动资产
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_ldzc[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_yfzk(date: str):  # 计算：应付账款
-            if date not in self.zcfzb_dates:
+        def calc_yfzk(year: str):  # 计算：应付账款
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_yfzk[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_ldfz(date: str):  # 计算：流动负债
-            if date not in self.zcfzb_dates:
+        def calc_ldfz(year: str):  # 计算：流动负债
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_ldfz[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_cqfz(date: str):  # 计算：长期负债
-            if date not in self.zcfzb_dates:
+        def calc_cqfz(year: str):  # 计算：长期负债
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_cqfz[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_gdqy(date: str):  # 计算：股东权益
-            if date not in self.zcfzb_dates:
+        def calc_gdqy(year: str):  # 计算：股东权益
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_gdqy[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_fzzzcbl(date: str):  # 计算：负债占资产比率
-            if date not in self.zcfzb_dates:
+        def calc_fzzzcbl(year: str):  # 计算：负债占资产比率
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_zfz[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
         # 计算：长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
-        def calc_cqzjzbdcbl(date: str):
-            if date not in self.zcfzb_dates:
+        def calc_cqzjzbdcbl(year: str):
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_ldbl(date: str):  # 计算：流动比率：流动资产 / 流动负债
-            if date not in self.zcfzb_dates:
+        def calc_ldbl(year: str):  # 计算：流动比率：流动资产 / 流动负债
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round(self.zcfzb_ldzc[i] / self.zcfzb_ldfz[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_sdbl(date: str):  # 计算：速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
-            if date not in self.zcfzb_dates:
+        def calc_sdbl(year: str):  # 计算：速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
+            if year not in self.zcfzb_years:
                 return None
             try:
-                i = self.zcfzb_dates.index(date)
+                i = self.zcfzb_years.index(year)
                 return round((self.zcfzb_ldzc[i] - self.zcfzb_ch[i] - self.zcfzb_yfkx[i]) / self.zcfzb_ldfz[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_yszkzzl(date: str):  # 计算：应收账款周转率(次)：营业收入 / 应收账款
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_yszkzzl(year):  # 计算：应收账款周转率(次)：营业收入 / 应收账款
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / self.zcfzb_yszk[zcfzb_i], 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_pjsxrs(date: str):  # 计算：平均收现日数：360 / 应收账款周转率(次)
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_pjsxrs(year):  # 计算：平均收现日数：360 / 应收账款周转率(次)
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(360 / round(self.lrb_yysr[lrb_i] / self.zcfzb_yszk[zcfzb_i], 2), 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_chzzl(date: str):  # 计算：存货周转率(次)：营业成本 / 存货
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_chzzl(year):  # 计算：存货周转率(次)：营业成本 / 存货
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yycb[lrb_i] / self.zcfzb_ch[zcfzb_i], 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_pjxhrs(date: str):  # 计算：平均销货日数(在库天数)：360 / 存货周转率(次)
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_pjxhrs(year):  # 计算：平均销货日数(在库天数)：360 / 存货周转率(次)
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(360 / round(self.lrb_yycb[lrb_i] / self.zcfzb_ch[zcfzb_i], 2), 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
         # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
-        def calc_gdzczzl(date: str):
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_gdzczzl(year):
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / (self.zcfzb_gdzc[zcfzb_i] + self.zcfzb_zjgc[zcfzb_i] + self.zcfzb_gcwz[zcfzb_i]), 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_zzczzl(date: str):  # 总资产周转率(次)：营业收入 / 总资产
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_zzczzl(year):  # 总资产周转率(次)：营业收入 / 总资产
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_yysr[lrb_i] / self.zcfzb_zzc[zcfzb_i], 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_roe(date: str):  # 股东权益报酬率(ROE)
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_roe(year):  # 股东权益报酬率(ROE)
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_jlr_gm[lrb_i] / self.zcfzb_gdqy_gm[zcfzb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_roa(date: str):  # 总资产报酬率(ROA)
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_roa(year):  # 总资产报酬率(ROA)
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.lrb_jlr_gm[lrb_i] / self.zcfzb_zzc[zcfzb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_yymll(date: str):  # 营业毛利率：(营业收入合计 - 营业成本合计) / 营业收入合计
-            if date not in self.lrb_dates:
+        def calc_yymll(year):  # 营业毛利率：(营业收入合计 - 营业成本合计) / 营业收入合计
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return round((self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_yylyl(date: str):  # # 营业利益率：营业利润 / 营业收入
-            if date not in self.lrb_dates:
+        def calc_yylyl(year):  # # 营业利益率：营业利润 / 营业收入
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_jyaqbjl(date: str):  # 经营安全边际率：营业利益率 / 营业毛利率
-            if date not in self.lrb_dates:
+        def calc_jyaqbjl(year):  # 经营安全边际率：营业利益率 / 营业毛利率
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return round(round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2) / round((self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_jll(date: str):  # 净利率：净利润 / 营业收入
-            if date not in self.lrb_dates:
+        def calc_jll(year):  # 净利率：净利润 / 营业收入
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return round(self.lrb_jlr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        def calc_mgyy(date: str):  # 每股盈余
-            if date not in self.lrb_dates:
+        def calc_mgyy(year):  # 每股盈余
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return self.lrb_mgyy[lrb_i]
             except ValueError:
                 return None
 
-        def calc_shjl(date: str):  # 税后净利
-            if date not in self.lrb_dates:
+        def calc_shjl(year):  # 税后净利
+            if year not in self.lrb_years:
                 return None
             try:
-                lrb_i = self.lrb_dates.index(date)
+                lrb_i = self.lrb_years.index(year)
                 return self.lrb_jlr[lrb_i]
             except ValueError:
                 return None
 
-        def calc_xjllbl(date: str):  # 现金流量比率：营业活动现金流量 / 流动负债
-            if date not in self.xjllb_dates or date not in self.zcfzb_dates:
+        def calc_xjllbl(year):  # 现金流量比率：营业活动现金流量 / 流动负债
+            if year not in self.xjllb_years or year not in self.zcfzb_years:
                 return None
             try:
-                xjllb_i = self.xjllb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                xjllb_i = self.xjllb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round(self.xjllb_yyhdxjll[xjllb_i] / self.zcfzb_ldfz[zcfzb_i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
         # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
-        def calc_xjztzbl(date: str):
-            if date not in self.lrb_dates or date not in self.zcfzb_dates:
+        def calc_xjztzbl(year):
+            if year not in self.lrb_years or year not in self.zcfzb_years:
                 return None
             try:
-                xjllb_i = self.xjllb_dates.index(date)
-                zcfzb_i = self.zcfzb_dates.index(date)
+                xjllb_i = self.xjllb_years.index(year)
+                zcfzb_i = self.zcfzb_years.index(year)
                 return round((self.xjllb_yyhdxjll[xjllb_i] - self.xjllb_xjgl[xjllb_i]) / (self.zcfzb_zzc[zcfzb_i] - self.zcfzb_ldfz[zcfzb_i]) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
-        for i, date in enumerate(self.dates):
+        for i, year in enumerate(self.years):
             # 现金流量允当比率
-            if date.endswith('-12-31'):
-                try:
-                    xjllydbl = calc_xjllydbl(date)
-                    xjllydbl = round(xjllydbl * 100, 2)
-                except:
-                    xjllydbl = None
-            else:
+            try:
+                xjllydbl = calc_xjllydbl(year)
+                xjllydbl = round(xjllydbl * 100, 2)
+            except:
                 xjllydbl = None
             temp = [
-                calc_xjyydxj(date),  # 现金与约当现金
-                calc_yszk(date),  # 应收账款
-                calc_ch(date),  # 存货
-                calc_ldzc(date),  # 流动资产
-                calc_yfzk(date),  # 应付账款
-                calc_ldfz(date),  # 流动负债
-                calc_cqfz(date),  # 长期负债
-                calc_gdqy(date),  # 股东权益
+                calc_xjyydxj(year),  # 现金与约当现金
+                calc_yszk(year),  # 应收账款
+                calc_ch(year),  # 存货
+                calc_ldzc(year),  # 流动资产
+                calc_yfzk(year),  # 应付账款
+                calc_ldfz(year),  # 流动负债
+                calc_cqfz(year),  # 长期负债
+                calc_gdqy(year),  # 股东权益
 
-                calc_fzzzcbl(date),  # 负债占资产比率
-                calc_cqzjzbdcbl(date),  # 长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
+                calc_fzzzcbl(year),  # 负债占资产比率
+                calc_cqzjzbdcbl(year),  # 长期资金占不动产/厂房及设备比率：(长期负债 + 股东权益) / (固定资产 + 在建工程 + 工程物资)
 
-                calc_ldbl(date),  # 流动比率：流动资产 / 流动负债
-                calc_sdbl(date),  # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
+                calc_ldbl(year),  # 流动比率：流动资产 / 流动负债
+                calc_sdbl(year),  # 速动比率：(流动资产 - 存货 - 预付款项) / 流动负债
 
-                calc_yszkzzl(date),  # 应收账款周转率(次)：营业收入 / 应收账款
-                calc_pjsxrs(date),  # 平均收现日数：360 / 应收账款周转率(次)
-                calc_chzzl(date),  # 存货周转率(次)：营业成本 / 存货
-                calc_pjxhrs(date),  # 平均销货日数(在库天数)：360 / 存货周转率(次)
-                calc_gdzczzl(date),  # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
-                calc_zzczzl(date),  # 总资产周转率(次)：营业收入 / 总资产
+                calc_yszkzzl(year),  # 应收账款周转率(次)：营业收入 / 应收账款
+                calc_pjsxrs(year),  # 平均收现日数：360 / 应收账款周转率(次)
+                calc_chzzl(year),  # 存货周转率(次)：营业成本 / 存货
+                calc_pjxhrs(year),  # 平均销货日数(在库天数)：360 / 存货周转率(次)
+                calc_gdzczzl(year),  # 不动产/厂房及设备周转率(固定资产周转率)：营业收入 / (固定资产 + 在建工程 + 工程物资)
+                calc_zzczzl(year),  # 总资产周转率(次)：营业收入 / 总资产
 
-                calc_roe(date),  # 股东权益报酬率(ROE)
-                calc_roa(date),  # 总资产报酬率(ROA)
-                calc_yymll(date),  # 营业毛利率：(营业收入合计 - 营业成本合计) / 营业收入合计
-                calc_yylyl(date),  # 营业利益率：营业利润 / 营业收入
-                calc_jyaqbjl(date),  # 经营安全边际率：营业利益率 / 营业毛利率
-                calc_jll(date),  # 净利率：净利润 / 营业收入
-                calc_mgyy(date),  # 每股盈余
-                calc_shjl(date),  # 税后净利
+                calc_roe(year),  # 股东权益报酬率(ROE)
+                calc_roa(year),  # 总资产报酬率(ROA)
+                calc_yymll(year),  # 营业毛利率：(营业收入合计 - 营业成本合计) / 营业收入合计
+                calc_yylyl(year),  # 营业利益率：营业利润 / 营业收入
+                calc_jyaqbjl(year),  # 经营安全边际率：营业利益率 / 营业毛利率
+                calc_jll(year),  # 净利率：净利润 / 营业收入
+                calc_mgyy(year),  # 每股盈余
+                calc_shjl(year),  # 税后净利
 
-                calc_xjllbl(date),  # 现金流量比率：营业活动现金流量 / 流动负债
+                calc_xjllbl(year),  # 现金流量比率：营业活动现金流量 / 流动负债
                 xjllydbl,  # 现金流量允当比率：近5年营业活动现金流量 /  近5年(资本支出 + 存货减少额 + 现金股利)
                 # 现金再投资比例：(营业活动现金流量 - 现金股利) / (固定资产毛额 + 长期投资 + 其他资产 + 营运资金) 分母等同于 (资产总额 - 流动负债)
-                calc_xjztzbl(date),
+                calc_xjztzbl(year),
 
-                self.code, date
+                self.code, year
             ]
             zcfzbl_sql_params.append(temp)
         replace_db(zcfzbl_sql, zcfzbl_sql_params, is_many=True)
@@ -556,7 +550,7 @@ class Stock:
     # 资产负债表
     def __get_data_zcfzb(self):
         df = pd.read_csv(self.__url_zcfzb, encoding=self.encoding)
-        self.zcfzb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+        self.zcfzb_years = [ymd[:4] for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
         self.zcfzb_zgb = []  # 总股本  CSV_LINE:96  DF_INDEX:94
         self.zcfzb_xjyydxj = []  # 现金与约当现金  CSV_LINE:2+3+4+5+6  DF_INDEX:0+1+2+3+4
         self.zcfzb_yszk = []  # 应收账款  CSV_LINE:8  DF_INDEX:6
@@ -573,8 +567,8 @@ class Stock:
         self.zcfzb_gcwz = []  # 工程物资 CSV_LINE:40  DF_INDEX:38
         self.zcfzb_zfz = []  # 总负债 CSV_LINE:95  DF_INDEX:93
         self.zcfzb_zzc = []  # 总资产 CSV_LINE:53  DF_INDEX:51
-        for date in self.zcfzb_dates:
-            data = df[date]
+        for year in self.zcfzb_years:
+            data = df[f'{year}-12-31']
             # 总股本
             self.zcfzb_zgb.append(change_text(data[94], 0))
             # 现金与约当现金
@@ -619,7 +613,7 @@ class Stock:
     # 利润表
     def __get_data_lrb(self):
         df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
-        self.lrb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+        self.lrb_years = [ymd[:4] for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
         self.lrb_jlr_gm = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
         self.lrb_jlr = []  # 净利润  CSV_LINE:41  DF_INDEX:39
         self.lrb_yysr = []  # 营业收入  CSV_LINE:2  DF_INDEX:0
@@ -628,8 +622,8 @@ class Stock:
         self.lrb_yycb_hj = []  # 营业成本合计  CSV_LINE:10~21  DF_INDEX:8~19
         self.lrb_yylr = []  # 营业利润  CSV_LINE:34  DF_INDEX:32
         self.lrb_mgyy = []  # 每股盈余  CSV_LINE:45  DF_INDEX:43
-        for date in self.lrb_dates:
-            data = df[date]
+        for year in self.lrb_years:
+            data = df[f'{year}-12-31']
             self.lrb_jlr_gm.append(change_text(data[40], 0))
             self.lrb_jlr.append(change_text(data[39], 0))
             self.lrb_yysr.append(change_text(data[0], 0))
@@ -645,15 +639,15 @@ class Stock:
     # 现金流量表
     def __get_data_xjllb(self):
         df = pd.read_csv(self.__url_xjllb, encoding=self.encoding)
-        self.xjllb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+        self.xjllb_years = [ymd[:4] for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
         self.xjllb_yyhdxjll = []  # 营业活动现金流量  CSV_LINE:26  DF_INDEX:24
         self.xjllb_tzhdxjll = []  # 投资活动现金流量  CSV_LINE:41  DF_INDEX:39
         self.xjllb_czhdxjll = []  # 筹资活动现金流量  CSV_LINE:53  DF_INDEX:51
         self.xjllb_xjgl = []  # 现金股利  CSV_LINE:49  DF_INDEX:47
         self.xjllb_zbzc = []  # 资本支出  CSV_LINE:34  DF_INDEX:32
         self.xjllb_chjse = []  # 存货减少额  CSV_LINE:76  DF_INDEX:74
-        for date in self.xjllb_dates:
-            data = df[date]
+        for year in self.xjllb_years:
+            data = df[f'{year}-12-31']
             self.xjllb_yyhdxjll.append(change_text(data[24], 0))
             self.xjllb_tzhdxjll.append(change_text(data[39], 0))
             self.xjllb_czhdxjll.append(change_text(data[51], 0))

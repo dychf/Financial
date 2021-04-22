@@ -39,9 +39,9 @@ URL_GSZL = 'http://quotes.money.163.com/f10/gszl_{stock_code}.html'
 URL_FHPX = 'http://quotes.money.163.com/f10/fhpg_{stock_code}.html'
 
 # 三表数据源
-URL_ZCFZB = 'http://quotes.money.163.com/service/zcfzb_{stock_code}.html'  # 资产负债表
-URL_LRB = 'http://quotes.money.163.com/service/lrb_{stock_code}.html'  # 利润表
-URL_XJLLB = 'http://quotes.money.163.com/service/xjllb_{stock_code}.html'  # 现金流量表
+URL_ZCFZB = 'http://quotes.money.163.com/service/zcfzb_{stock_code}.html?type=year'  # 资产负债表
+URL_LRB = 'http://quotes.money.163.com/service/lrb_{stock_code}.html?type=year'  # 利润表
+URL_XJLLB = 'http://quotes.money.163.com/service/xjllb_{stock_code}.html?type=year'  # 现金流量表
 
 # 流行指数：上证50、沪深300、中证500、红利指数、科创50
 URL_INDEX_SZ50 = 'http://www.csindex.com.cn/uploads/file/autofile/cons/000016cons.xls'
