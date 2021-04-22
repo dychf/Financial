@@ -50,7 +50,7 @@ def start_up():
             config['stock'] = stock.code
             write_file(LOCATION_FILE_PATH, config)
             print('', stock.zwjc, 'DONE')
-    
+
     config['done'] = True
     config['category'] = category.id
     config['stock'] = stock.code
