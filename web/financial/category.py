@@ -17,6 +17,49 @@ def query():
     return jsonify(result)
 
 
+@category.route('/preview', methods=['GET'])
+def preview():
+    result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
+
+    query_data_sql = """
+        SELECT L1_name, L2_name, cnt
+        FROM (
+            SELECT category_id, COUNT(*) AS cnt FROM stock GROUP BY category_id
+        ) AS t1
+        INNER JOIN (
+            SELECT
+                c2.name AS L1_name, c2.display AS L1_display,
+                c1.name AS L2_name, c1.id AS category_id, c1.display AS L2_display
+            FROM category AS c1 INNER JOIN category AS c2
+            ON c1.parent_id = c2.id
+        ) AS t2
+        ON t1.category_id = t2.category_id
+        ORDER BY L1_display, L2_display
+    """
+    data = query_data(query_data_sql)
+
+    for row in data:
+        L1_names = [item['name'] for item in result['data']]
+        if row['L1_name'] not in L1_names:
+            result['data'].append({
+                'name': row['L1_name'],
+                'children': [{
+                    'name': row['L2_name'],
+                    'count': row['cnt']
+                }],
+                'count': row['cnt']
+            })
+        else:
+            L1_index = L1_names.index(row['L1_name'])
+            result['data'][L1_index]['children'].append({
+                'name': row['L2_name'],
+                'count': row['cnt']
+            })
+            result['data'][L1_index]['count'] += row['cnt']
+
+    return jsonify(result)
+
+
 @category.route('/stocks', methods=['GET'])
 def stocks():
     result = {'code': current_app.config['ERROR_CODE_OK'], 'data': []}
