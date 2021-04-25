@@ -2,7 +2,7 @@ import random
 import requests
 
 from flask import Blueprint, request, jsonify, current_app
-from utils import query_data, parse_jsonp
+from utils import query_data
 
 stock = Blueprint('stock', __name__, url_prefix='/stock')
 
@@ -88,7 +88,7 @@ def index():
     if response.status_code != 200:
         return jsonify(result)
 
-    index_data = parse_jsonp(response.text)
+    index_data = response.json()
     if index_data['data'] is None:
         return jsonify(result)
 

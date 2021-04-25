@@ -40,6 +40,6 @@ HTTP_HEADERS = {
     ]
 }
 # 指数
-URL_INDEX = 'http://12.push2.eastmoney.com/api/qt/clist/get?cb=callback&pn=1&pz=50&fltt=2&invt=2&fid=&fs=b:MK0010&fields=f2,f3,f4,f12,f14'
+URL_INDEX = 'http://12.push2.eastmoney.com/api/qt/clist/get?pn=1&pz=50&fltt=2&invt=2&fid=&fs=b:MK0010&fields=f2,f3,f4,f12,f14'
 # 热门分类
 URL_CATEGORY = 'http://quotes.money.163.com/hs/realtimedata/service/plate.php?page=0&query=TYPE:HANGYE&fields=NAME,PERCENT,PLATE_ID,UPNUM,DOWNNUM&sort=PERCENT&order=desc&count=1000'
