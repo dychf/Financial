@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS `financial`;
 CREATE TABLE `financial` (
   `code` char(6) NOT NULL COMMENT '股票代码',
   `year` char(4) NOT NULL COMMENT '年份',
+  `report` char(2) NOT NULL COMMENT '报告期',
   `yyhdxjll` double DEFAULT NULL COMMENT '营业活动现金流量',
   `tzhdxjll` double DEFAULT NULL COMMENT '投资活动现金流量',
   `czhdxjll` double DEFAULT NULL COMMENT '筹资活动现金流量',
@@ -60,7 +61,7 @@ CREATE TABLE `financial` (
   `xjllbl` double DEFAULT NULL COMMENT '现金流量比率',
   `xjllydbl` double DEFAULT NULL COMMENT '现金流量允当比率',
   `xjztzbl` double DEFAULT NULL COMMENT '现金再投资比例',
-  PRIMARY KEY (`code`,`year`)
+  PRIMARY KEY (`code`,`year`,`report`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='财务数据';
 
 DROP TABLE IF EXISTS `stock`;
