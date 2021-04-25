@@ -1,0 +1,54 @@
+<view class="search" catchtap="search">
+    <image src="/images/search.png"/>
+    <text>搜代码 / 简称 / 拼音首字母</text>
+</view>
+<view class="index">
+    <view class="index-title">重要指数</view>
+    <view class='index-area'>
+        <view class="index-item">
+            <text class="name">上证指数</text>
+            <text class="value">3789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">深证成指</text>
+            <text class="value">13789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">创业板指</text>
+            <text class="value">2789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">上证50</text>
+            <text class="value">3789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">沪深300</text>
+            <text class="value">3789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">中证500</text>
+            <text class="value">3789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">科创50</text>
+            <text class="value">3789.12</text>
+            <text class="updown">+342.2 (+2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">中小100</text>
+            <text class="value" style="color: #009933">3789.12</text>
+            <text class="updown" style="color: #009933">-342.2 (-2.98%)</text>
+        </view>
+        <view class="index-item">
+            <text class="name">中小300</text>
+            <text class="value">3789.12</text>
+            <text class="updown" >+342.2 (+2.98%)</text>
+        </view>
+    </view>
+</view>
