@@ -3,52 +3,111 @@
     <text>搜代码 / 简称 / 拼音首字母</text>
 </view>
 <view class="index">
-    <view class="index-title">重要指数</view>
-    <view class='index-area'>
-        <view class="index-item">
-            <text class="name">上证指数</text>
-            <text class="value">3789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
+    <view class="important-index">
+        <view class="index-title">重要指数</view>
+        <view class='index-area'>
+            <view class="index-item">
+                <text class="name">上证指数</text>
+                <text class="value">3789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">深证成指</text>
+                <text class="value">13789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">创业板指</text>
+                <text class="value">2789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">上证50</text>
+                <text class="value">3789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">沪深300</text>
+                <text class="value">3789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">中证500</text>
+                <text class="value">3789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">科创50</text>
+                <text class="value">3789.12</text>
+                <text class="updown">+342.2 (+2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">中小100</text>
+                <text class="value" style="color: #009933">3789.12</text>
+                <text class="updown" style="color: #009933">-342.2 (-2.98%)</text>
+            </view>
+            <view class="index-item">
+                <text class="name">中小300</text>
+                <text class="value">3789.12</text>
+                <text class="updown" >+342.2 (+2.98%)</text>
+            </view>
         </view>
-        <view class="index-item">
-            <text class="name">深证成指</text>
-            <text class="value">13789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
+    </view>
+    <!-- 热门板块 -->
+    <view class="hot-plate">
+        <view class="hot-plate_title">
+            <view class="label">热门板块</view>
+            <view class="more">>></view>
         </view>
-        <view class="index-item">
-            <text class="name">创业板指</text>
-            <text class="value">2789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">上证50</text>
-            <text class="value">3789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">沪深300</text>
-            <text class="value">3789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">中证500</text>
-            <text class="value">3789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">科创50</text>
-            <text class="value">3789.12</text>
-            <text class="updown">+342.2 (+2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">中小100</text>
-            <text class="value" style="color: #009933">3789.12</text>
-            <text class="updown" style="color: #009933">-342.2 (-2.98%)</text>
-        </view>
-        <view class="index-item">
-            <text class="name">中小300</text>
-            <text class="value">3789.12</text>
-            <text class="updown" >+342.2 (+2.98%)</text>
+        <view class="hot-plate_list">
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
+            <view class="hot-item_plate">
+                <view class="item-plate_title">机械制造</view>
+                <view class="item-plate_percent">+2.3%</view>
+                <view class="item-plate_status">
+                    <view class="item-plate-rise_count"><text>↑</text>12</view>
+                    <view class="item-plate-fall_count"><text>↓</text>2</view>
+                </view>
+            </view>
         </view>
     </view>
 </view>
