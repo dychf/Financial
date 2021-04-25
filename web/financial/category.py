@@ -1,3 +1,6 @@
+import random
+import requests
+
 from flask import Blueprint, request, jsonify, current_app
 from utils import query_data
 
@@ -14,6 +17,53 @@ def query():
         query_data_sql = 'SELECT id, name FROM category WHERE parent_id = %s ORDER BY display'
         query_data_params = [parent_id]
     result['data'] = query_data(query_data_sql, query_data_params)
+    return jsonify(result)
+
+
+@category.route('/hot', methods=['GET'])
+def hot():
+    result = {
+        'code': current_app.config['ERROR_CODE_OK'],
+        'data': {
+            'top': [],
+            'last': []
+        }
+    }
+
+    headers = {
+        'Accept': request.headers.get('Accept', current_app.config['HTTP_HEADERS']['Accept']),
+        'Referer': current_app.config['HTTP_HEADERS']['Referer']['163'],
+        'User-Agent': random.choice(current_app.config['HTTP_HEADERS']['User-Agent'])
+    }
+
+    url = current_app.config['URL_CATEGORY']
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        return jsonify(result)
+
+    data = response.json()
+    if len(data['list']) == 0:
+        return jsonify(result)
+    
+    for item in data['list'][:3]:
+        result['data']['top'].append({
+            'id': item['PLATE_ID'],
+            'name': item['NAME'],
+            'up': item['UPNUM'],
+            'down': item['DOWNNUM'],
+            'percent': f'{round(item["PERCENT"] * 100, 2)}%'
+        })
+    
+    for item in data['list'][-3:][::-1]:
+        result['data']['last'].append({
+            'id': item['PLATE_ID'],
+            'name': item['NAME'],
+            'up': item['UPNUM'],
+            'down': item['DOWNNUM'],
+            'percent': f'{round(item["PERCENT"] * 100, 2)}%'
+        })
+
     return jsonify(result)
 
 

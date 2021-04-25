@@ -1,3 +1,4 @@
+import random
 import requests
 
 from flask import Blueprint, request, jsonify, current_app
@@ -77,8 +78,8 @@ def index():
 
     headers = {
         'Accept': request.headers.get('Accept', current_app.config['HTTP_HEADERS']['Accept']),
-        'Host': current_app.config['HTTP_HEADERS']['Host'],
-        'User-Agent': request.headers.get('User-Agent', current_app.config['HTTP_HEADERS']['User-Agent'])
+        'Host': current_app.config['HTTP_HEADERS']['Host']['eastmoney'],
+        'User-Agent': random.choice(current_app.config['HTTP_HEADERS']['User-Agent'])
     }
 
     url = current_app.config['URL_INDEX']
