@@ -20,11 +20,12 @@ def query():
     return jsonify(result)
 
 
-@category.route('/hot', methods=['GET'])
-def hot():
+@category.route('/updown', methods=['GET'])
+def updown():
     result = {
         'code': current_app.config['ERROR_CODE_OK'],
         'data': {
+            'all': [],
             'top': [],
             'last': []
         }
@@ -45,24 +46,36 @@ def hot():
     data = response.json()
     if len(data['list']) == 0:
         return jsonify(result)
-    
-    for item in data['list'][:3]:
-        result['data']['top'].append({
-            'id': item['PLATE_ID'],
-            'name': item['NAME'],
-            'up': item['UPNUM'],
-            'down': item['DOWNNUM'],
-            'percent': f'{round(item["PERCENT"] * 100, 2)}%'
-        })
-    
-    for item in data['list'][-3:][::-1]:
-        result['data']['last'].append({
-            'id': item['PLATE_ID'],
-            'name': item['NAME'],
-            'up': item['UPNUM'],
-            'down': item['DOWNNUM'],
-            'percent': f'{round(item["PERCENT"] * 100, 2)}%'
-        })
+
+    type = request.args.get('type')
+
+    if type == 'all':
+        for item in data['list']:
+            result['data']['all'].append({
+                'id': item['PLATE_ID'],
+                'name': item['NAME'],
+                'up': item['UPNUM'],
+                'down': item['DOWNNUM'],
+                'percent': f'{round(item["PERCENT"] * 100, 2)}%'
+            })
+    else:
+        for item in data['list'][:3]:
+            result['data']['top'].append({
+                'id': item['PLATE_ID'],
+                'name': item['NAME'],
+                'up': item['UPNUM'],
+                'down': item['DOWNNUM'],
+                'percent': f'{round(item["PERCENT"] * 100, 2)}%'
+            })
+        
+        for item in data['list'][-3:][::-1]:
+            result['data']['last'].append({
+                'id': item['PLATE_ID'],
+                'name': item['NAME'],
+                'up': item['UPNUM'],
+                'down': item['DOWNNUM'],
+                'percent': f'{round(item["PERCENT"] * 100, 2)}%'
+            })
 
     return jsonify(result)
 
