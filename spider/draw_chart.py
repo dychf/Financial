@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from financial.utils import query_data
 from financial.config import BASE_PATH
 
-plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
 plt.rcParams['figure.figsize'] = 7, 3.5
 
 # 查询数据
