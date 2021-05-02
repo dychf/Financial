@@ -134,9 +134,16 @@ def draw(keyword):
     db_data.reverse()
     years = [row['year'] for row in db_data]
     last_year = int(years[-1])
-    for row in db_data[years.index(f'{last_year - 4}'):]:
-        data['year'].append(f"{row['year']}年")
-        data['data'].append(row['fhl'])
+    for i, year in enumerate(range(last_year - 4, last_year + 1)):
+        year = str(year)
+        if years.count(year) > 0:
+            for j, row in enumerate(db_data):
+                if row['year'] == year:
+                    data['year'].append(f"{year}年")
+                    data['data'].append(row['fhl'])
+        else:
+            data['year'].append(f"{year}年")
+            data['data'].append(0)
     data['avg'] = [round(sum(data['data']) / len(data['data']), 2)] * len(data['year'])
     make_line_chart('分红率', data=data)
 
