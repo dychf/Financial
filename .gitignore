@@ -1,4 +1,5 @@
 *.pyc
+spider/charts
 spider/progress.json
 spider/financial/__pycache__
 spider/financial/core/__pycache__

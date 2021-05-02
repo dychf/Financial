@@ -55,6 +55,15 @@ def get_db_conn_cur():
     cur = conn.cursor(pymysql.cursors.DictCursor)
     return conn, cur
 
+# 查询数据
+def query_data(sql: str, params: list=[], fetchone=False):
+    result = None
+    conn, cur = get_db_conn_cur()
+    cur.execute(sql, params)
+    result = cur.fetchone() if fetchone else list(cur.fetchall())
+    conn.close()
+    return result
+
 # 插入/更新数据
 def replace_db(sql: str, params=[], is_many=False, is_special_sql=False) -> int:
     conn, cur = get_db_conn_cur()
