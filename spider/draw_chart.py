@@ -1,7 +1,9 @@
 import sys
 import os
+import operator
 import matplotlib.pyplot as plt
 
+from collections import defaultdict
 from financial.utils import query_data
 from financial.config import BASE_PATH
 
@@ -9,33 +11,59 @@ plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
 plt.rcParams['figure.figsize'] = 7, 3.5
 
 # 查询数据
-def fetch_data(column, stock_code, year=5):
+def fetch_data(column, stocks):
+    codes, names = [], []
+    for stock in stocks:
+        codes.append(stock['code'])
+        names.append(stock['name'])
+
     sql = f"""
-        SELECT year, {column} FROM financial
-        WHERE code = '{stock_code}' AND report = 'Q4'
-        ORDER BY year DESC LIMIT {year}
-    """
-    db_data = query_data(sql)
-    db_data.reverse()
-    years = [row['year'] for row in db_data]
-    last_year = int(years[-1])
-    data = {'year': [], 'data': [], 'avg': []}
-    for i in range(last_year - 4, last_year + 1):
-        y = str(i)
-        data['year'].append(f'{y}年')
-        if y in years:
-            data['data'].append(db_data[years.index(y)][column])
-        else:
-            data['data'].append(0)
-    data['avg'] = [round(sum(data['data']) / len(years), 2)] * len(years)
+        SELECT code, year, {column} FROM financial
+        WHERE code IN (%s) AND report = 'Q4'
+        ORDER BY year DESC
+    """ % (','.join([f"'{code}'" for code in codes]))
+    db_data = defaultdict(list)
+    for row in query_data(sql):
+        index = codes.index(row['code'])
+        db_data[names[index]].append(row)
+
+    # 排序 & 最后一年
+    last_years = []
+    data = {}
+    for key, values in db_data.items():
+        db_data[key] = sorted(values, key=operator.itemgetter('year'))
+        data[key] = []
+        last_years.append(db_data[key][-1]['year'])
+    last_year = int(max(last_years))
+
+    data['year'] = []
+    for year in range(last_year - 4, last_year + 1):
+        year = str(year)
+        data['year'].append(f'{year}年')
+
+        for name, rows in db_data.items():
+            years = [item['year'] for item in rows]
+            if year in years:
+                data[name].append(rows[years.index(year)][f'{column}'])
+            else:
+                data[name].append(0)
+
+    if len(names) == 1:
+        data['平均线'] = [round(sum(data[names[0]]) / len(data['year']), 2)] * len(data['year'])
+
     return data
 
 # 折线图
-def make_line_chart(title, column='', stock_code='', unit='比率（%）', data=None):
-    data = fetch_data(column, stock_code) if data is None else data
+def make_line_chart(title, column='', stocks='', unit='比率（%）', data=None):
+    data = fetch_data(column, stocks) if data is None else data
 
-    plt.plot(data['year'], data['data'], label='趋势线', marker = 'o')
-    plt.plot(data['year'], data['avg'], label='平均线')
+    for key, values in data.items():
+        if key == 'year':
+            continue
+        if key == '平均线':
+            plt.plot(data['year'], data['avg'], label='平均线')
+        else:
+            plt.plot(data['year'], data[key], label=key, marker = 'o')
 
     plt.title(title)
     if unit is not None:
@@ -48,7 +76,7 @@ def make_line_chart(title, column='', stock_code='', unit='比率（%）', data=
     plt.close('all')
 
 # 总资产
-def zzc(stock_code, year=5):
+def zzc(stocks):
     sql = f"""
         SELECT
             year,
@@ -56,8 +84,8 @@ def zzc(stock_code, year=5):
             IFNULL(cqfz_zzc_bl, 0) AS cqfz_zzc_bl,
             IFNULL(ldfz_zzc_bl, 0) AS ldfz_zzc_bl
         FROM financial
-        WHERE code = '{stock_code}' AND report = 'Q4'
-        ORDER BY year DESC LIMIT {year}
+        WHERE code = '{stocks[0]["code"]}' AND report = 'Q4'
+        ORDER BY year DESC LIMIT 5
     """
     data = query_data(sql)
     data.reverse()
@@ -94,38 +122,52 @@ def zzc(stock_code, year=5):
     plt.close('all')
 
 
-def draw(keyword):
-    sql = 'SELECT code FROM stock WHERE code = %s OR zwjc = %s'
-    data = query_data(sql, [keyword, keyword], fetchone=True)
+def draw(keywords):
+    sql_seg = []
+    sql_params = []
+    for keyword in keywords:
+        sql_seg.append('code = %s OR zwjc = %s')
+        sql_params += [keyword, keyword]
+    sql_seg = ' OR '.join(sql_seg)
+    sql = 'SELECT code, zwjc AS name FROM stock WHERE ' + sql_seg + ' ORDER BY code'
+    data = query_data(sql, sql_params)
 
-    stock_code = data['code']
+    stock_count = len(data)
 
     # 现金流量
-    make_line_chart('现金流量比率', 'xjllbl', stock_code)
-    make_line_chart('现金流量允当比率', 'xjllydbl', stock_code)
-    make_line_chart('现金再投资比率', 'xjztzbl', stock_code)
+    make_line_chart('现金流量比率', 'xjllbl', data)
+    make_line_chart('现金流量允当比率', 'xjllydbl', data)
+    make_line_chart('现金再投资比率', 'xjztzbl', data)
 
     # 获利能力
-    make_line_chart('股东权益报酬率（ROE）', 'gdqybcl', stock_code)
-    make_line_chart('总资产报酬率（ROA）', 'zzcbcl', stock_code)
-    make_line_chart('营业毛利率', 'yymll', stock_code)
-    make_line_chart('营业利益率', 'yylyl', stock_code)
-    make_line_chart('净利率', 'jll', stock_code)
+    make_line_chart('股东权益报酬率（ROE）', 'gdqybcl', data)
+    make_line_chart('总资产报酬率（ROA）', 'zzcbcl', data)
+    make_line_chart('营业毛利率', 'yymll', data)
+    make_line_chart('营业利益率', 'yylyl', data)
+    make_line_chart('净利率', 'jll', data)
 
     # 偿债能力
-    make_line_chart('流动比率', 'ldbl', stock_code)
-    make_line_chart('速动比率', 'sdbl', stock_code)
+    make_line_chart('流动比率', 'ldbl', data)
+    make_line_chart('速动比率', 'sdbl', data)
 
     # 经营能力
-    make_line_chart('应收账款周转率（次）', 'yszkzzl', unit='次', stock_code=stock_code)
-    make_line_chart('平均收现日数', 'pjsxrs', unit=None, stock_code=stock_code)
-    make_line_chart('总资产周转率（次）', 'zzczzl', unit='次', stock_code=stock_code)
+    make_line_chart('应收账款周转率（次）', 'yszkzzl', unit='次', stocks=data)
+    make_line_chart('平均收现日数', 'pjsxrs', unit=None, stocks=data)
+    make_line_chart('总资产周转率（次）', 'zzczzl', unit='次', stocks=data)
 
     # 财务结构
-    make_line_chart('现金与约当现金占总资产比率', 'xjyydxj_zzc_bl', stock_code=stock_code)
-    make_line_chart('流动资产占总资产比率', 'ldzc_zzc_bl', stock_code=stock_code)
-    make_line_chart('应付账款占总资产比率', 'yfzk_zzc_bl', stock_code=stock_code)
-    zzc(stock_code)
+    make_line_chart('现金与约当现金占总资产比率', 'xjyydxj_zzc_bl', stocks=data)
+    make_line_chart('流动资产占总资产比率', 'ldzc_zzc_bl', stocks=data)
+    make_line_chart('应付账款占总资产比率', 'yfzk_zzc_bl', stocks=data)
+    if stock_count == 1:
+        zzc(stock_codes)
+    else:
+        make_line_chart('流动负债', 'ldfz_zzc_bl', stocks=data)
+        make_line_chart('长期负债', 'cqfz_zzc_bl', stocks=data)
+        make_line_chart('股东权益', 'gdqy_zzc_bl', stocks=data)
+    
+    if stock_count > 1:
+        return
 
     # 分红水平
     data = {'year': [], 'data': [], 'avg': []}
@@ -153,7 +195,11 @@ if __name__ == '__main__':
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
 
-    if len(sys.argv) != 2:
-        print('参数错误，示例：python show.py 600031/三一重工')
+    if len(sys.argv) < 2:
+        print('参数错误，示例：')
+        print('\tpython show.py 五粮液')
+        print('\tpython show.py 五粮液 泸州老窖')
+        print('注：理论上支持多个财报的对比，为了美观建议最多3个')
     else:
-        draw(sys.argv[1])
+        keywords = sys.argv[1:]
+        draw(keywords)
