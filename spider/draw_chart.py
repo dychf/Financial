@@ -49,7 +49,9 @@ def fetch_data(column, stocks):
                 data[name].append(0)
 
     if len(names) == 1:
+        data['趋势线'] = data[names[0]]
         data['平均线'] = [round(sum(data[names[0]]) / len(data['year']), 2)] * len(data['year'])
+        del data[names[0]]
 
     return data
 
@@ -61,7 +63,7 @@ def make_line_chart(title, column='', stocks='', unit='比率（%）', data=None
         if key == 'year':
             continue
         if key == '平均线':
-            plt.plot(data['year'], data['avg'], label='平均线')
+            plt.plot(data['year'], data[key], label=key)
         else:
             plt.plot(data['year'], data[key], label=key, marker = 'o')
 
@@ -130,48 +132,48 @@ def draw(keywords):
         sql_params += [keyword, keyword]
     sql_seg = ' OR '.join(sql_seg)
     sql = 'SELECT code, zwjc AS name FROM stock WHERE ' + sql_seg + ' ORDER BY code'
-    data = query_data(sql, sql_params)
+    stocks = query_data(sql, sql_params)
 
-    stock_count = len(data)
+    stock_count = len(stocks)
 
     # 现金流量
-    make_line_chart('现金流量比率', 'xjllbl', data)
-    make_line_chart('现金流量允当比率', 'xjllydbl', data)
-    make_line_chart('现金再投资比率', 'xjztzbl', data)
+    make_line_chart('现金流量比率', 'xjllbl', stocks)
+    make_line_chart('现金流量允当比率', 'xjllydbl', stocks)
+    make_line_chart('现金再投资比率', 'xjztzbl', stocks)
 
     # 获利能力
-    make_line_chart('股东权益报酬率（ROE）', 'gdqybcl', data)
-    make_line_chart('总资产报酬率（ROA）', 'zzcbcl', data)
-    make_line_chart('营业毛利率', 'yymll', data)
-    make_line_chart('营业利益率', 'yylyl', data)
-    make_line_chart('净利率', 'jll', data)
+    make_line_chart('股东权益报酬率（ROE）', 'gdqybcl', stocks)
+    make_line_chart('总资产报酬率（ROA）', 'zzcbcl', stocks)
+    make_line_chart('营业毛利率', 'yymll', stocks)
+    make_line_chart('营业利益率', 'yylyl', stocks)
+    make_line_chart('净利率', 'jll', stocks)
 
     # 偿债能力
-    make_line_chart('流动比率', 'ldbl', data)
-    make_line_chart('速动比率', 'sdbl', data)
+    make_line_chart('流动比率', 'ldbl', stocks)
+    make_line_chart('速动比率', 'sdbl', stocks)
 
     # 经营能力
-    make_line_chart('应收账款周转率（次）', 'yszkzzl', unit='次', stocks=data)
-    make_line_chart('平均收现日数', 'pjsxrs', unit=None, stocks=data)
-    make_line_chart('总资产周转率（次）', 'zzczzl', unit='次', stocks=data)
+    make_line_chart('应收账款周转率（次）', 'yszkzzl', unit='次', stocks=stocks)
+    make_line_chart('平均收现日数', 'pjsxrs', unit=None, stocks=stocks)
+    make_line_chart('总资产周转率（次）', 'zzczzl', unit='次', stocks=stocks)
 
     # 财务结构
-    make_line_chart('现金与约当现金占总资产比率', 'xjyydxj_zzc_bl', stocks=data)
-    make_line_chart('流动资产占总资产比率', 'ldzc_zzc_bl', stocks=data)
-    make_line_chart('应付账款占总资产比率', 'yfzk_zzc_bl', stocks=data)
+    make_line_chart('现金与约当现金占总资产比率', 'xjyydxj_zzc_bl', stocks=stocks)
+    make_line_chart('流动资产占总资产比率', 'ldzc_zzc_bl', stocks=stocks)
+    make_line_chart('应付账款占总资产比率', 'yfzk_zzc_bl', stocks=stocks)
     if stock_count == 1:
-        zzc(stock_codes)
+        zzc(stocks)
     else:
-        make_line_chart('流动负债', 'ldfz_zzc_bl', stocks=data)
-        make_line_chart('长期负债', 'cqfz_zzc_bl', stocks=data)
-        make_line_chart('股东权益', 'gdqy_zzc_bl', stocks=data)
+        make_line_chart('流动负债', 'ldfz_zzc_bl', stocks=stocks)
+        make_line_chart('长期负债', 'cqfz_zzc_bl', stocks=stocks)
+        make_line_chart('股东权益', 'gdqy_zzc_bl', stocks=stocks)
     
     if stock_count > 1:
         return
 
     # 分红水平
-    data = {'year': [], 'data': [], 'avg': []}
-    sql = f'SELECT year, fhl FROM dividend WHERE code = {stock_code} ORDER BY year DESC'
+    data = {'year': [], '趋势线': [], '平均线': []}
+    sql = f"SELECT year, fhl FROM dividend WHERE code = '{stocks[0]['code']}' ORDER BY year DESC"
     db_data = query_data(sql)
     db_data.reverse()
     years = [row['year'] for row in db_data]
@@ -182,11 +184,11 @@ def draw(keywords):
             for j, row in enumerate(db_data):
                 if row['year'] == year:
                     data['year'].append(f"{year}年")
-                    data['data'].append(row['fhl'])
+                    data['趋势线'].append(row['fhl'])
         else:
             data['year'].append(f"{year}年")
-            data['data'].append(0)
-    data['avg'] = [round(sum(data['data']) / len(data['data']), 2)] * len(data['year'])
+            data['趋势线'].append(0)
+    data['平均线'] = [round(sum(data['趋势线']) / len(data['趋势线']), 2)] * len(data['year'])
     make_line_chart('分红率', data=data)
 
 
