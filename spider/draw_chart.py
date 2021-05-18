@@ -50,7 +50,8 @@ def fetch_data(column, stocks):
 
     if len(names) == 1:
         data['趋势线'] = data[names[0]]
-        data['平均线'] = [round(sum(data[names[0]]) / len(data['year']), 2)] * len(data['year'])
+        data_exclude_0 = [value for value in data[names[0]] if value is not None]
+        data['平均线'] = [round(sum(data_exclude_0) / len(data_exclude_0), 2)] * len(data['year'])
         del data[names[0]]
 
     return data
