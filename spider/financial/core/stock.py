@@ -6,7 +6,7 @@ import gc
 from lxml import etree
 from financial.config import URL_GSZL, URL_FHPX, URL_ZCFZB, URL_LRB, URL_XJLLB
 from financial.config import URL_INDEX_SZ50, URL_INDEX_HS300, URL_INDEX_ZZ500, URL_INDEX_HLZS, URL_INDEX_KC50
-from financial.utils import pinyin, change_text, replace_db
+from financial.utils import pinyin, change_text, replace_db, read_net_file
 
 class Stock:
 
@@ -681,8 +681,9 @@ class Stock:
         }
         if type not in urls:
             return []
-        df = pd.read_excel(urls[type], dtype={'成分券代码Constituent Code': str})
-        return df['成分券代码Constituent Code'].tolist()
+        df = read_net_file(urls[type], file_type='EXCEL')
+        codes = [str(code).zfill(6) for code in df['成分券代码Constituent Code'].tolist()]
+        return codes
 
     SZ50 = get_stocks.__func__('SZ50')
     HS300 = get_stocks.__func__('HS300')

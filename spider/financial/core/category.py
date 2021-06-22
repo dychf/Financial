@@ -1,6 +1,5 @@
 import json
 import requests
-import pymysql
 
 from lxml import etree
 from financial.config import URL_CATEGORY, CATEGORY_STOCK_PAGE_SIZE, URL_CATEGORY_STOCK

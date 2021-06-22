@@ -1,5 +1,6 @@
 import uuid
 import json
+import random
 import pymysql
 import requests
 import pandas as pd
@@ -12,12 +13,19 @@ from financial.config import DB_CONFIG, HTTP_HEADERS
 def generate_uuid() -> str:
     return str(uuid.uuid1()).replace('-', '')
 
-# 读取网络CSV
-def read_csv(url: str, encoding='GB18030') -> pd.DataFrame:
-    response = requests.get(url, headers=HTTP_HEADERS)
+# 读取网络文件
+def read_net_file(url: str, file_type='CSV', encoding='GB18030') -> pd.DataFrame:
+    headers = {
+        'Accept': HTTP_HEADERS['Accept'],
+        'User-Agent': random.choice(HTTP_HEADERS['User-Agent'])
+    }
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        data = StringIO(response.text)
-        return pd.read_csv(data, encoding=encoding)
+        if file_type == 'CSV':
+            data = StringIO(response.text)
+            return pd.read_csv(data, encoding=encoding)
+        elif file_type == 'EXCEL':
+            return pd.read_excel(response.content)
     return None
 
 # 拼音首字母
