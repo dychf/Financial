@@ -1,6 +1,5 @@
 import pandas as pd
 import requests
-import lxml
 import gc
 
 from lxml import etree

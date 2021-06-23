@@ -31,7 +31,6 @@ def start_up():
         config['stock'] = None
 
     start_category_id = config['category']
-    start_stock_id = config['stock']
 
     categorys = Category.get_all_category()
     all_category_id = [category.id for category in categorys]

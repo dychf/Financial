@@ -3,7 +3,7 @@ import requests
 
 from lxml import etree
 from financial.config import URL_CATEGORY, CATEGORY_STOCK_PAGE_SIZE, URL_CATEGORY_STOCK
-from financial.utils import replace_db
+from financial.utils import replace_db, query_data
 
 class Category:
 
@@ -57,6 +57,12 @@ class Category:
 
     # 更新数据库
     def into_db(self):
-        sql = 'REPLACE INTO category(id, name, display, parent_id) VALUES(%s, %s, %s, %s)'
-        params = [self.id, self.name, self.order, self.parent]
-        replace_db(sql, params)
+        query_sql = 'SELECT COUNT(*) AS cnt FROM category WHERE id = %s'
+        count = query_data(query_sql, [self.id], fetchone=True)['cnt']
+        if count == 1:
+            exec_sql = 'UPDATE category SET name = %s, display = %s, parent_id = %s WHERE id = %s'
+            params = [self.name, self.order, self.parent, self.id]
+        else:
+            exec_sql = 'INSERT INTO category(id, name, display, parent_id) VALUES(%s, %s, %s, %s)'
+            params = [self.id, self.name, self.order, self.parent]
+        replace_db(exec_sql, params)
