@@ -7,6 +7,7 @@ from financial.config import URL_GSZL, URL_FHPX, URL_ZCFZB, URL_LRB, URL_XJLLB
 from financial.config import URL_INDEX_SZ50, URL_INDEX_HS300, URL_INDEX_ZZ500, URL_INDEX_HLZS, URL_INDEX_KC50
 from financial.utils import pinyin, change_text, replace_db, read_net_file
 
+
 class Stock:
 
     def __init__(self, code: str, category: None):
@@ -19,11 +20,16 @@ class Stock:
         self.__url_fhpx = URL_FHPX.format(stock_code=self.code)
         self.encoding = 'GB18030'
         self.__get_data()
-        self.is_sz50 = 1 if code in Stock.SZ50 else 0
-        self.is_hs300 = 1 if code in Stock.HS300 else 0
-        self.is_zz500 = 1 if code in Stock.ZZ500 else 0
-        self.is_hlzs = 1 if code in Stock.HLZS else 0
-        self.is_kc50 = 1 if code in Stock.KC50 else 0
+        # self.is_sz50 = 1 if code in Stock.SZ50 else 0
+        # self.is_hs300 = 1 if code in Stock.HS300 else 0
+        # self.is_zz500 = 1 if code in Stock.ZZ500 else 0
+        # self.is_hlzs = 1 if code in Stock.HLZS else 0
+        # self.is_kc50 = 1 if code in Stock.KC50 else 0
+        self.is_sz50 = 0
+        self.is_hs300 = 0
+        self.is_zz500 = 0
+        self.is_hlzs = 0
+        self.is_kc50 = 0
 
     # 更新数据库
     def into_db(self):
@@ -54,14 +60,16 @@ class Stock:
         """
         fhl_sql_params = []
         for i, year in enumerate(self.fhpx_years):
-            temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_ggrq[i], self.fhpx_cqcxr[i]]
+            temp = [self.code, year, self.fhpx_sg[i], self.fhpx_zz[i], self.fhpx_px[i], self.fhpx_ggrq[i],
+                    self.fhpx_cqcxr[i]]
             if f'{year}-12-31' not in self.zcfzb_dates or f'{year}-12-31' not in self.lrb_dates:
                 temp.append(None)
             else:
                 try:
                     zcfzb_zgb_index = self.zcfzb_dates.index(f'{year}-12-31')
                     lrb_jlr_gm_index = self.lrb_dates.index(f'{year}-12-31')
-                    fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[zcfzb_zgb_index] / 10 / self.lrb_jlr_gm[lrb_jlr_gm_index] * 100, 2)
+                    fhl = round(self.fhpx_px[i] * self.zcfzb_zgb[zcfzb_zgb_index] / 10 / self.lrb_jlr_gm[
+                        lrb_jlr_gm_index] * 100, 2)
                     temp.append(fhl)
                 except:
                     temp.append(None)
@@ -91,7 +99,8 @@ class Stock:
             WHERE code = %s AND year = %s AND report = %s
         """
         xjllb_sql_params = [
-            [self.xjllb_yyhdxjll[i], self.xjllb_tzhdxjll[i], self.xjllb_czhdxjll[i], self.code, date[:4], return_report(date)]
+            [self.xjllb_yyhdxjll[i], self.xjllb_tzhdxjll[i], self.xjllb_czhdxjll[i], self.code, date[:4],
+             return_report(date)]
             for i, date in enumerate(self.xjllb_dates) if date[5:7] in ['03', '06', '09', '12']
         ]
         replace_db(xjllb_sql, xjllb_sql_params, is_many=True)
@@ -183,7 +192,7 @@ class Stock:
                 return round(self.zcfzb_xjyydxj[i] / self.zcfzb_zzc[i] * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
-        
+
         def calc_yszk(date: str):  # 计算：应收账款
             if date not in self.zcfzb_dates:
                 return None
@@ -262,7 +271,8 @@ class Stock:
                 return None
             try:
                 i = self.zcfzb_dates.index(date)
-                return round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)
+                return round((self.zcfzb_cqfz[i] + self.zcfzb_gdqy[i]) / (
+                        self.zcfzb_gdzc[i] + self.zcfzb_zjgc[i] + self.zcfzb_gcwz[i]) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
@@ -331,7 +341,8 @@ class Stock:
             try:
                 lrb_i = self.lrb_dates.index(date)
                 zcfzb_i = self.zcfzb_dates.index(date)
-                return round(self.lrb_yysr[lrb_i] / (self.zcfzb_gdzc[zcfzb_i] + self.zcfzb_zjgc[zcfzb_i] + self.zcfzb_gcwz[zcfzb_i]), 2)
+                return round(self.lrb_yysr[lrb_i] / (
+                        self.zcfzb_gdzc[zcfzb_i] + self.zcfzb_zjgc[zcfzb_i] + self.zcfzb_gcwz[zcfzb_i]), 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
@@ -388,7 +399,8 @@ class Stock:
                 return None
             try:
                 lrb_i = self.lrb_dates.index(date)
-                return round(round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2) / round((self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2) * 100, 2)
+                return round(round(self.lrb_yylr[lrb_i] / self.lrb_yysr[lrb_i] * 100, 2) / round(
+                    (self.lrb_yysr_hj[lrb_i] - self.lrb_yycb_hj[lrb_i]) / self.lrb_yysr_hj[lrb_i] * 100, 2) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
@@ -436,7 +448,8 @@ class Stock:
             try:
                 xjllb_i = self.xjllb_dates.index(date)
                 zcfzb_i = self.zcfzb_dates.index(date)
-                return round((self.xjllb_yyhdxjll[xjllb_i] - self.xjllb_xjgl[xjllb_i]) / (self.zcfzb_zzc[zcfzb_i] - self.zcfzb_ldfz[zcfzb_i]) * 100, 2)
+                return round((self.xjllb_yyhdxjll[xjllb_i] - self.xjllb_xjgl[xjllb_i]) / (
+                        self.zcfzb_zzc[zcfzb_i] - self.zcfzb_ldfz[zcfzb_i]) * 100, 2)
             except(ValueError, ZeroDivisionError):
                 return None
 
@@ -507,10 +520,27 @@ class Stock:
 
     # 基本信息
     def __get_data_gszl(self):
+
+        self.zzxs = ''  # 组织形式
+        self.dy = ''  # 地域
+        self.zwjc = ''  # 中文简称
+        self.zwjc_py = ''  # 中文简称_拼音首字母
+        self.gsqc = ''  # 公司全称
+        self.gswz = ''  # 公司网站
+        self.zyyw = ''  # 主营业务
+        self.jyfw = ''  # 经营范围
+        self.clrq = None  # 成立日期
+        self.ssrq = None  # 上市日期
+        self.sssc = ''  # 上市市场
+        self.zcxs = ''  # 主承销商
+        self.ssbjr = ''  # 上市保荐人
+        self.kjssws = ''  # 会计师事务所
+
         response = requests.get(self.__url_gszl)
         if response.status_code == 200:
             html = etree.HTML(response.text)
-            self.zzxs = change_text(html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[2]')[0].text, to_type=str)  # 组织形式
+            self.zzxs = change_text(html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[2]')[0].text,
+                                    to_type=str)  # 组织形式
             self.dy = html.xpath('/html/body/div[2]/div[4]/table/tr[1]/td[4]')[0].text  # 地域
             self.zwjc = html.xpath('/html/body/div[2]/div[4]/table/tr[2]/td[2]')[0].text  # 中文简称
             self.zwjc_py = pinyin(self.zwjc)  # 中文简称_拼音首字母
@@ -522,28 +552,35 @@ class Stock:
 
             self.zyyw = html.xpath('/html/body/div[2]/div[4]/table/tr[10]/td[2]')[0].text.strip()  # 主营业务
             self.jyfw = html.xpath('/html/body/div[2]/div[4]/table/tr[11]/td[2]')[0].text.strip()  # 经营范围
-            self.clrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[1]/td[2]')[0].text, to_type=str)  # 成立日期
-            self.ssrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[2]/td[2]')[0].text, to_type=str)  # 上市日期
+            self.clrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[1]/td[2]')[0].text,
+                                    to_type=str)  # 成立日期
+            self.ssrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[2]/td[2]')[0].text,
+                                    to_type=str)  # 上市日期
             self.sssc = self.market()  # 上市市场
-            self.zcxs = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[16]/td[2]')[0].text, to_type=str)  # 主承销商
-            self.ssbjr = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[17]/td[2]')[0].text, to_type=str)  # 上市保荐人
-            self.kjssws = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[18]/td[2]')[0].text, to_type=str)  # 会计师事务所
+            self.zcxs = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[16]/td[2]')[0].text,
+                                    to_type=str)  # 主承销商
+            self.ssbjr = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[17]/td[2]')[0].text,
+                                     to_type=str)  # 上市保荐人
+            self.kjssws = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[18]/td[2]')[0].text,
+                                      to_type=str)  # 会计师事务所
 
             del response
             gc.collect()
 
     # 分红派息
     def __get_data_fhpx(self):
+
+        self.fhpx_ggrq = []  # 公告日期
+        self.fhpx_years = []  # 分红派息年份
+        self.fhpx_sg = []  # 送股
+        self.fhpx_zz = []  # 转增
+        self.fhpx_px = []  # 派息
+        self.fhpx_cqcxr = []  # 除权除息日
+
         response = requests.get(self.__url_fhpx)
         if response.status_code == 200:
             html = etree.HTML(response.text)
             nodes = html.cssselect('body > div.area > div:nth-child(5) > table > tr')
-            self.fhpx_ggrq = []  # 公告日期
-            self.fhpx_years = []  # 分红派息年份
-            self.fhpx_sg = []  # 送股
-            self.fhpx_zz = []  # 转增
-            self.fhpx_px = []  # 派息
-            self.fhpx_cqcxr = []  # 除权除息日
             for i, node in enumerate(nodes):
                 all_td = node.findall('td')
                 if len(all_td) == 1:  # 暂无数据
@@ -560,8 +597,8 @@ class Stock:
 
     # 资产负债表
     def __get_data_zcfzb(self):
-        df = pd.read_csv(self.__url_zcfzb, encoding=self.encoding)
-        self.zcfzb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+
+        self.zcfzb_dates = []
         self.zcfzb_zgb = []  # 总股本  CSV_LINE:96  DF_INDEX:94
         self.zcfzb_xjyydxj = []  # 现金与约当现金  CSV_LINE:2+3+4+5+6  DF_INDEX:0+1+2+3+4
         self.zcfzb_yszk = []  # 应收账款  CSV_LINE:8  DF_INDEX:6
@@ -578,53 +615,58 @@ class Stock:
         self.zcfzb_gcwz = []  # 工程物资 CSV_LINE:40  DF_INDEX:38
         self.zcfzb_zfz = []  # 总负债 CSV_LINE:95  DF_INDEX:93
         self.zcfzb_zzc = []  # 总资产 CSV_LINE:53  DF_INDEX:51
-        for date in self.zcfzb_dates:
-            data = df[date]
-            # 总股本
-            self.zcfzb_zgb.append(change_text(data[94], 0))
-            # 现金与约当现金
-            v_csv_2 = change_text(data[0], 0)
-            v_csv_3 = change_text(data[1], 0)
-            v_csv_4 = change_text(data[2], 0)
-            v_csv_5 = change_text(data[3], 0)
-            v_csv_6 = change_text(data[4], 0)
-            self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
-            # 应收账款
-            self.zcfzb_yszk.append(change_text(data[6], 0))
-            # 预付款项
-            self.zcfzb_yfkx.append(change_text(data[7], 0))
-            # 存货
-            self.zcfzb_ch.append(change_text(data[19], 0))
-            # 流动资产
-            self.zcfzb_ldzc.append(change_text(data[24], 0))
-            # 应付账款
-            self.zcfzb_yfzk.append(change_text(data[59], 0))
-            # 流动负债
-            self.zcfzb_ldfz.append(change_text(data[83], 0))
-            # 长期负债
-            self.zcfzb_cqfz.append(change_text(data[92], 0))
-            # 股东权益
-            self.zcfzb_gdqy.append(change_text(data[106], 0))
-            # 归属母公司股东权益
-            self.zcfzb_gdqy_gm.append(change_text(data[104], 0))
-            # 总负债
-            self.zcfzb_zfz.append(change_text(data[93], 0))
-            # 固定资产
-            self.zcfzb_gdzc.append(change_text(data[36], 0))
-            # 在建工程
-            self.zcfzb_zjgc.append(change_text(data[37], 0))
-            # 工程物资
-            self.zcfzb_gcwz.append(change_text(data[38], 0))
-            # 总资产
-            self.zcfzb_zzc.append(change_text(data[51], 0))
 
-        del df
-        gc.collect()
+        response = requests.get(self.__url_zcfzb)
+        if response.status_code == 200:
+            df = pd.read_csv(self.__url_zcfzb, encoding=self.encoding)
+            self.zcfzb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+            for date in self.zcfzb_dates:
+                data = df[date]
+                # 总股本
+                self.zcfzb_zgb.append(change_text(data[94], 0))
+                # 现金与约当现金
+                v_csv_2 = change_text(data[0], 0)
+                v_csv_3 = change_text(data[1], 0)
+                v_csv_4 = change_text(data[2], 0)
+                v_csv_5 = change_text(data[3], 0)
+                v_csv_6 = change_text(data[4], 0)
+                self.zcfzb_xjyydxj.append(v_csv_2 + v_csv_3 + v_csv_4 + v_csv_5 + v_csv_6)
+                # 应收账款
+                self.zcfzb_yszk.append(change_text(data[6], 0))
+                # 预付款项
+                self.zcfzb_yfkx.append(change_text(data[7], 0))
+                # 存货
+                self.zcfzb_ch.append(change_text(data[19], 0))
+                # 流动资产
+                self.zcfzb_ldzc.append(change_text(data[24], 0))
+                # 应付账款
+                self.zcfzb_yfzk.append(change_text(data[59], 0))
+                # 流动负债
+                self.zcfzb_ldfz.append(change_text(data[83], 0))
+                # 长期负债
+                self.zcfzb_cqfz.append(change_text(data[92], 0))
+                # 股东权益
+                self.zcfzb_gdqy.append(change_text(data[106], 0))
+                # 归属母公司股东权益
+                self.zcfzb_gdqy_gm.append(change_text(data[104], 0))
+                # 总负债
+                self.zcfzb_zfz.append(change_text(data[93], 0))
+                # 固定资产
+                self.zcfzb_gdzc.append(change_text(data[36], 0))
+                # 在建工程
+                self.zcfzb_zjgc.append(change_text(data[37], 0))
+                # 工程物资
+                self.zcfzb_gcwz.append(change_text(data[38], 0))
+                # 总资产
+                self.zcfzb_zzc.append(change_text(data[51], 0))
+
+            del df
+            gc.collect()
 
     # 利润表
     def __get_data_lrb(self):
-        df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
-        self.lrb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+
+        self.lrb_dates = []
         self.lrb_jlr_gm = []  # 归属于母公司所有者的净利润  CSV_LINE:42  DF_INDEX:40
         self.lrb_jlr = []  # 净利润  CSV_LINE:41  DF_INDEX:39
         self.lrb_yysr = []  # 营业收入  CSV_LINE:2  DF_INDEX:0
@@ -633,43 +675,53 @@ class Stock:
         self.lrb_yycb_hj = []  # 营业成本合计  CSV_LINE:10~21  DF_INDEX:8~19
         self.lrb_yylr = []  # 营业利润  CSV_LINE:34  DF_INDEX:32
         self.lrb_mgyy = []  # 每股盈余  CSV_LINE:45  DF_INDEX:43
-        for date in self.lrb_dates:
-            data = df[date]
-            self.lrb_jlr_gm.append(change_text(data[40], 0))
-            self.lrb_jlr.append(change_text(data[39], 0))
-            self.lrb_yysr.append(change_text(data[0], 0))
-            self.lrb_yysr_hj.append(sum([change_text(v, 0) for v in data[1:7]]))
-            self.lrb_yycb.append(change_text(data[8], 0))
-            self.lrb_yycb_hj.append(sum([change_text(v, 0) for v in data[8:20]]))
-            self.lrb_yylr.append(change_text(data[32], 0))
-            self.lrb_mgyy.append(change_text(data[43], 0))
 
-        del df
-        gc.collect()
+        response = requests.get(self.__url_lrb)
+        if response.status_code == 200:
+            df = pd.read_csv(self.__url_lrb, encoding=self.encoding)
+            self.lrb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+            for date in self.lrb_dates:
+                data = df[date]
+                self.lrb_jlr_gm.append(change_text(data[40], 0))
+                self.lrb_jlr.append(change_text(data[39], 0))
+                self.lrb_yysr.append(change_text(data[0], 0))
+                self.lrb_yysr_hj.append(sum([change_text(v, 0) for v in data[1:7]]))
+                self.lrb_yycb.append(change_text(data[8], 0))
+                self.lrb_yycb_hj.append(sum([change_text(v, 0) for v in data[8:20]]))
+                self.lrb_yylr.append(change_text(data[32], 0))
+                self.lrb_mgyy.append(change_text(data[43], 0))
+
+            del df
+            gc.collect()
 
     # 现金流量表
     def __get_data_xjllb(self):
-        df = pd.read_csv(self.__url_xjllb, encoding=self.encoding)
-        self.xjllb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+
+        self.xjllb_dates = []
         self.xjllb_yyhdxjll = []  # 营业活动现金流量  CSV_LINE:26  DF_INDEX:24
         self.xjllb_tzhdxjll = []  # 投资活动现金流量  CSV_LINE:41  DF_INDEX:39
         self.xjllb_czhdxjll = []  # 筹资活动现金流量  CSV_LINE:53  DF_INDEX:51
         self.xjllb_xjgl = []  # 现金股利  CSV_LINE:49  DF_INDEX:47
         self.xjllb_zbzc = []  # 资本支出  CSV_LINE:34  DF_INDEX:32
         self.xjllb_chjse = []  # 存货减少额  CSV_LINE:76  DF_INDEX:74
-        for date in self.xjllb_dates:
-            data = df[date]
-            self.xjllb_yyhdxjll.append(change_text(data[24], 0))
-            self.xjllb_tzhdxjll.append(change_text(data[39], 0))
-            self.xjllb_czhdxjll.append(change_text(data[51], 0))
-            self.xjllb_xjgl.append(change_text(data[47], 0))
-            self.xjllb_zbzc.append(change_text(data[32], 0))
-            self.xjllb_chjse.append(change_text(data[74], 0))
 
-        del df
-        gc.collect()
+        response = requests.get(self.__url_xjllb)
+        if response.status_code == 200:
+            df = pd.read_csv(self.__url_xjllb, encoding=self.encoding)
+            self.xjllb_dates = [ymd for ymd in df.columns.to_list()[1:] if ymd.strip() != '' and ymd[:4].isdigit()]
+            for date in self.xjllb_dates:
+                data = df[date]
+                self.xjllb_yyhdxjll.append(change_text(data[24], 0))
+                self.xjllb_tzhdxjll.append(change_text(data[39], 0))
+                self.xjllb_czhdxjll.append(change_text(data[51], 0))
+                self.xjllb_xjgl.append(change_text(data[47], 0))
+                self.xjllb_zbzc.append(change_text(data[32], 0))
+                self.xjllb_chjse.append(change_text(data[74], 0))
 
-    @staticmethod
+            del df
+            gc.collect()
+
+    # @staticmethod
     def get_stocks(type):
         urls = {
             'SZ50': URL_INDEX_SZ50,
@@ -684,8 +736,8 @@ class Stock:
         codes = [str(code).zfill(6) for code in df['成分券代码Constituent Code'].tolist()]
         return codes
 
-    SZ50 = get_stocks.__func__('SZ50')
-    HS300 = get_stocks.__func__('HS300')
-    ZZ500 = get_stocks.__func__('ZZ500')
-    HLZS = get_stocks.__func__('HLZS')
-    KC50 = get_stocks.__func__('KC50')
+    # SZ50 = get_stocks.__func__('SZ50')
+    # HS300 = get_stocks.__func__('HS300')
+    # ZZ500 = get_stocks.__func__('ZZ500')
+    # HLZS = get_stocks.__func__('HLZS')
+    # KC50 = get_stocks.__func__('KC50')

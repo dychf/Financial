@@ -5,3 +5,5 @@ spider/financial/__pycache__
 spider/financial/core/__pycache__
 web/__pycache__
 web/financial/__pycache__
+
+.idea
