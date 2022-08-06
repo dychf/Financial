@@ -550,7 +550,8 @@ class Stock:
             comment = etree.fromstring(comment.text)
             self.gswz = change_text(comment.xpath('/tr/td[2]')[0].text, to_type=str)  # 公司网站
 
-            self.zyyw = html.xpath('/html/body/div[2]/div[4]/table/tr[10]/td[2]')[0].text.strip()  # 主营业务
+            self.zyyw = html.xpath('/html/body/div[2]/div[4]/table/tr[10]/td[2]')[0].text  # 主营业务
+            self.zyyw = self.zyyw.strip() if self.zyyw else ''
             self.jyfw = html.xpath('/html/body/div[2]/div[4]/table/tr[11]/td[2]')[0].text.strip()  # 经营范围
             self.clrq = change_text(html.xpath('/html/body/div[2]/div[5]/table/tr[1]/td[2]')[0].text,
                                     to_type=str)  # 成立日期
