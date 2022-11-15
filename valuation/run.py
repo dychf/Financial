@@ -12,4 +12,7 @@ for cmd in f.readlines():
         print(cmd)
         subprocess.Popen(cmd, shell=True, stdout=None)
 
+# cd valuation
 # python run.py
+
+# https://www.comet.com/investment/value-investing/view/PkbFWG2FKrx7U4ITj95YwUFZU/experiments
