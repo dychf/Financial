@@ -1,17 +1,7 @@
 # 企业的确定性 1.利润是否为真 2.利润是否可持续 3.维持当前盈利水平是否需要大量资本支出
 # 企业的成长性 1.成长的幅度会有多大 2.成长是否需要依赖于大量的再投资
 
-from comet_ml import Experiment
 import numpy as np
-import time
-
-experiment = Experiment(
-    api_key="gH9ClXMtOUFDSwRt0RGupJC2W",
-    project_name="value-investing",
-    workspace="investment",
-)
-
-
 
 def stock_price(market, equity):
     """
@@ -63,28 +53,13 @@ if __name__=="__main__":
     netprofit=168
     # 近三年净利润增长率(%)
     growthrates=[9.52,9.73,28.02]
-    params={
-        "公司名称": company+"("+code+")",
-        "总股本": equity,
-        "上年净利润": netprofit,
-        "近三年净利润增长率": growthrates
-    }
-    experiment.log_parameters(params)
+    print("上年净利润", netprofit) 
+    print("近三年净利润增长率(%)", growthrates) 
 
-    tag='mean'
-    if tag=='mean':
-        experiment.add_tag("mean")
-        growthrate=np.mean(growthrates)
-    else:
-        experiment.add_tag("min")
-        growthrate=np.min(growthrates)
+    growthrate=np.min(growthrates)
     buy, sell=buysell(equity, netprofit, growthrate)
-    experiment.log_parameter("净利润增长率", growthrate)
-    experiment.log_parameter("买1", buy[0])
-    experiment.log_parameter("买2", buy[1])
-    experiment.log_parameter("买3", buy[2])
-    experiment.log_parameter("卖1", sell[0])
-    experiment.log_parameter("卖2", sell[1])
-    experiment.log_parameter("卖3", sell[2])
+    print("增长率", round(growthrate,2))    
+    print("买", buy)
+    print("卖", sell)
     
     
