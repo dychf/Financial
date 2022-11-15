@@ -1,7 +1,17 @@
 # 企业的确定性 1.利润是否为真 2.利润是否可持续 3.维持当前盈利水平是否需要大量资本支出
 # 企业的成长性 1.成长的幅度会有多大 2.成长是否需要依赖于大量的再投资
 
+from comet_ml import Experiment
 import numpy as np
+import argparse
+
+experiment = Experiment(
+    api_key="gH9ClXMtOUFDSwRt0RGupJC2W",
+    project_name="value-investing",
+    workspace="investment",
+)
+
+
 
 def stock_price(market, equity):
     """
@@ -44,22 +54,41 @@ def buysell(equity, netprofit, growthrate, riskfree_rate=4):
     
 
 if __name__=="__main__":
-    # 公司信息
-    company='海康威视'# 名称
-    code='002415' #股票代码
-    equity=94.33 #总股本
 
-    # 上年净利润
-    netprofit=168
-    # 近三年净利润增长率(%)
-    growthrates=[9.52,9.73,28.02]
-    print("上年净利润", netprofit) 
-    print("近三年净利润增长率(%)", growthrates) 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-company", type=str, required=True)
+    parser.add_argument("-equity", type=float, required=True)
+    parser.add_argument("-netprofit", type=float, required=True)
+    parser.add_argument("-growthrates", nargs='+', required=True)
+    parser.add_argument("-year", type=int, required=True)
+    parser.add_argument("-method", choices=['mean', 'min'], required=True)
+    args = parser.parse_args()
 
-    growthrate=np.min(growthrates)
-    buy, sell=buysell(equity, netprofit, growthrate)
-    print("增长率", round(growthrate,2))    
-    print("买", buy)
-    print("卖", sell)
+    args.growthrates=[float(i) for i in args.growthrates]
+
+    params={
+        "公司名称": args.company,
+        "总股本": args.equity,
+        "年度": args.year,
+        "上年净利润": args.netprofit,
+        "近三年净利润增长率": args.growthrates
+    }
+    experiment.log_parameters(params)
+
+    if args.method=='mean':
+        experiment.log_parameter("增长率计算方法","平均")
+        growthrate=np.mean(args.growthrates)
+    else:
+        experiment.log_parameter("增长率计算方法","最小")
+        growthrate=np.min(args.growthrates)
+
+    buy, sell=buysell(args.equity, args.netprofit, growthrate)
+    experiment.log_parameter("增长率", round(growthrate, 2))
+    experiment.log_parameter("买1", buy[0])
+    experiment.log_parameter("买2", buy[1])
+    experiment.log_parameter("买3", buy[2])
+    experiment.log_parameter("卖1", sell[0])
+    experiment.log_parameter("卖2", sell[1])
+    experiment.log_parameter("卖3", sell[2])
     
-    
+    experiment.end()
